@@ -1,0 +1,3631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#07090f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Practitioner">
+  <!-- PWA manifest -->
+  <link rel="manifest" href="./manifest.json">
+  <!-- Apple touch icon — REQUIRED for iOS Add to Home Screen to show real PNG icon -->
+  <link rel="apple-touch-icon" href="./apple-touch-icon.png">
+  <!-- Favicon: .ico for legacy browsers -->
+  <link rel="icon" type="image/x-icon" href="./favicon.ico">
+  <!-- Favicon — inline SVG data URI, zero network fetch -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2307090f'/%3E%3Ctext x='5' y='26' font-family='Georgia,serif' font-size='26' font-weight='700' fill='%23c4a35a'%3EP%3C/text%3E%3C/svg%3E">
+  <!-- Force-unregister any stale service workers from old broken versions -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        regs.forEach(reg => {
+          // Unregister any SW NOT scoped to the current path
+          const expectedScope = new URL('./', location.href).href;
+          if (!reg.scope.startsWith(expectedScope.slice(0, -1))) {
+            reg.unregister();
+          }
+        });
+      });
+    }
+  </script>
+  <!-- Icons — PNG files for maximum browser/OS compatibility -->
+  <title>Practitioner</title>
+  <!-- Fonts: preconnect eliminates DNS + TLS round-trips; media trick makes load non-blocking -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,900;1,400;1,700;1,900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;0,900;1,400;1,700;1,900&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap"></noscript>
+  <style>
+    :root {
+      --ink:         #07090f;
+      --ink-mid:     #0c0f1a;
+      --ink-card:    #0a0d18;
+      /* BUG FIX: was #10142000 (fully transparent) — now a real semi-transparent colour */
+      --ink-lift:    rgba(16,20,32,0.92);
+      --ink-hover:   #151929;
+      --ink-border:  #1a2035;
+      --ink-rim:     #232c42;
+      --ink-dim:     #2b3450;
+      --gold:        #c4a35a;
+      --gold-bright: #debb77;
+      --gold-pale:   #8f7040;
+      --gold-deep:   #6b5228;
+      --gold-faint:  rgba(196,163,90,0.07);
+      --gold-rim:    rgba(196,163,90,0.20);
+      --gold-glow:   rgba(196,163,90,0.12);
+      --white:       #f3efe7;
+      --smoke:       #dad5cb;
+      --mist:        #9d9690;
+      --fog:         #5a5650;
+      --font-display: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'Cormorant Garamond', Georgia, serif;
+      --font-mono:    'DM Mono', monospace;
+      --radius-xs:   2px;
+      --radius-sm:   4px;
+      --radius-md:   7px;
+      --ease:        cubic-bezier(0.4, 0, 0.2, 1);
+      --transition:  all 0.22s var(--ease);
+      --shadow-gold: 0 0 28px rgba(196,163,90,0.18), 0 0 60px rgba(196,163,90,0.06);
+
+      /* Timer specific */
+      --t-green:     #6dc98a;
+      --t-green-dim: rgba(109,201,138,0.15);
+      --t-blue:      #7ab0ff;
+      --t-blue-dim:  rgba(122,176,255,0.15);
+    }
+
+    body.light-mode {
+      --ink:         #ffffff;
+      --ink-mid:     #f4f4f4;
+      --ink-card:    #f9f9f9;
+      --ink-lift:    rgba(255,255,255,0.98);
+      --ink-hover:   #ececec;
+      --ink-border:  #e0e0e0;
+      --ink-rim:     #c0c0c0;
+      --ink-dim:     #b0b0b0;
+      --gold:        #9a6f00;
+      --gold-bright: #b38200;
+      --gold-pale:   #7a5800;
+      --gold-deep:   #5a4000;
+      --gold-faint:  rgba(154,111,0,0.07);
+      --gold-rim:    rgba(154,111,0,0.22);
+      --gold-glow:   rgba(154,111,0,0.10);
+      --white:       #000000;
+      --smoke:       #0f0f0f;
+      --mist:        #444444;
+      --fog:         #888888;
+      --shadow-gold: 0 0 16px rgba(154,111,0,0.12);
+      --t-green:     #1e7a3e;
+      --t-green-dim: rgba(30,122,62,0.10);
+      --t-blue:      #1a4fb5;
+      --t-blue-dim:  rgba(26,79,181,0.10);
+    }
+    body.light-mode { background: var(--ink); color: var(--smoke); }
+
+    /* ── Light mode masthead ── */
+    body.light-mode .masthead {
+      background: rgba(255,255,255,0.97);
+      border-bottom: 1px solid #d8d8d8;
+      box-shadow: 0 1px 0 #e8e8e8, 0 4px 20px rgba(0,0,0,0.06);
+    }
+    body.light-mode .masthead::before {
+      background: #0a0a0a;
+      height: 3px;
+    }
+    body.light-mode .brand-name {
+      color: #000000;
+      text-shadow: none;
+      letter-spacing: 7px;
+    }
+    body.light-mode .brand-eyebrow { color: var(--fog); }
+    body.light-mode .masthead-top  { border-bottom-color: #e8e8e8; }
+    body.light-mode .meta-cell     { border-right-color: #e8e8e8; }
+    body.light-mode .masthead-brand{ border-right-color: #e8e8e8; }
+
+    /* ── Light mode session columns ── */
+    body.light-mode .session-col   { background: #ffffff; border-right-color: #e0e0e0; }
+    body.light-mode .sess-head {
+      background: linear-gradient(158deg, #ffffff 0%, #f5f5f5 100%);
+      background-color: #f7f7f7;
+      border-bottom: 1px solid #e4e4e4;
+    }
+    body.light-mode .sess-head::before { color: rgba(0,0,0,0.025); }
+    body.light-mode .session-col.has-time::before {
+      background: linear-gradient(180deg, transparent 0%, #0a0a0a 20%, #0a0a0a 80%, transparent 100%);
+      opacity: 0.7;
+    }
+    body.light-mode .session-col.has-time .sess-name {
+      color: #000000;
+      text-shadow: none;
+    }
+    body.light-mode .sess-badge        { border-color: #d0d0d0; color: #888; }
+    body.light-mode .sess-badge.active { border-color: var(--gold-pale); color: var(--gold); background: var(--gold-faint); }
+    body.light-mode .sess-progress     { background: #e8e8e8; }
+
+    /* ── Light mode calc strip ── */
+    body.light-mode .calc-strip {
+      background: #f0f0f0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    body.light-mode .calc-cell   { border-right-color: #e0e0e0; }
+    body.light-mode .calc-val    { color: #0a0a0a; }
+    body.light-mode .calc-val.empty { color: #cccccc; }
+    body.light-mode .calc-unit   { color: var(--gold-pale); }
+
+    /* ── Light mode banners & table ── */
+    body.light-mode .section-banner {
+      background: rgba(0,0,0,0.025);
+      border-bottom-color: #e0e0e0;
+      color: #555555;
+    }
+    body.light-mode .section-banner::before { background: #555555; }
+    body.light-mode .actual-banner {
+      background: #f4f4f4;
+      border-top-color: #e0e0e0;
+      border-bottom-color: #e0e0e0;
+      color: #555555;
+    }
+    body.light-mode .actual-banner::before { background: #888888; }
+    body.light-mode .table-head        { border-bottom-color: #e4e4e4; }
+    body.light-mode .actual-table-head { border-bottom-color: #e4e4e4; }
+
+    /* ── Light mode rows ── */
+    body.light-mode .item-row { background: #ffffff; border-bottom-color: #eeeeee; }
+    body.light-mode .item-row:nth-child(even) { background: #f8f8f8; }
+    body.light-mode .item-row:hover { background: #f0f0f0; }
+    body.light-mode .actual-item-row:nth-child(odd)  { background: #ffffff; }
+    body.light-mode .actual-item-row:nth-child(even) { background: #f8f8f8; }
+    body.light-mode .actual-item-row:hover { background: #f0f0f0; }
+    body.light-mode .item-name-label   { color: #0f0f0f; }
+    body.light-mode .item-name-mr      { color: #888888; }
+    body.light-mode .item-num          { color: #cccccc; }
+
+    /* ── Light mode inputs ── */
+    body.light-mode .sess-time-input { color-scheme: light; }
+    body.light-mode .sess-time-input::-webkit-calendar-picker-indicator { filter: none; opacity: 0.4; }
+    body.light-mode .commit-input {
+      background: rgba(0,0,0,0.02);
+      border-color: rgba(0,0,0,0.12);
+      color: #0a0a0a;
+    }
+    body.light-mode .commit-input:focus {
+      border-color: #0a0a0a;
+      background: rgba(0,0,0,0.04);
+      box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+    }
+    body.light-mode .commit-input::placeholder { color: #cccccc; }
+    body.light-mode .commit-input.auto-filled  { color: var(--gold-pale); border-color: rgba(154,111,0,0.20); background: rgba(154,111,0,0.04); }
+    body.light-mode .actual-name-input         { color: #0f0f0f; border-bottom-color: transparent; }
+    body.light-mode .actual-name-input:hover   { border-bottom-color: #d0d0d0; }
+    body.light-mode .actual-name-input:focus   { border-bottom-color: #0a0a0a; background: rgba(0,0,0,0.02); color: #000; }
+    body.light-mode .actual-name-input.customised { color: var(--gold); }
+    body.light-mode .meta-cell input            { color: #0f0f0f; }
+    body.light-mode .meta-cell input::placeholder { color: #c0c0c0; }
+    body.light-mode .meta-cell input:focus      { color: #000000; }
+
+    /* ── Light mode timer ── */
+    body.light-mode .sess-timer {
+      background: linear-gradient(160deg, #f4f4f4 0%, #f9f9f9 100%);
+      border-top: 1px solid #e4e4e4;
+    }
+    body.light-mode .sess-timer::before { background: radial-gradient(ellipse at 50% -20%, rgba(0,0,0,0.03) 0%, transparent 65%); }
+    body.light-mode .timer-digital-wrap { background: #ffffff; border-color: rgba(30,122,62,0.25); }
+    body.light-mode .timer-phase-badge  { border-color: #e0e0e0; color: #888888; }
+    body.light-mode .timer-phase-badge.prep { border-color: rgba(154,111,0,0.3); color: var(--gold-pale); background: var(--gold-faint); }
+    body.light-mode .timer-phase-badge.prac { border-color: rgba(30,122,62,0.25); color: var(--t-green); background: var(--t-green-dim); }
+    body.light-mode .timer-phase-badge.done { border-color: rgba(26,79,181,0.25); color: var(--t-blue); background: var(--t-blue-dim); }
+    body.light-mode .timer-btn           { border-color: #d8d8d8; color: #666666; background: #ffffff; }
+    body.light-mode .timer-btn:hover     { background: #f0f0f0; color: #000000; border-color: #aaaaaa; }
+    body.light-mode .timer-btn.t-primary { background: linear-gradient(135deg, #222222, #000000); border-color: #000000; color: #ffffff; }
+    body.light-mode .timer-btn.t-primary:hover { background: #333333; }
+    body.light-mode .timer-btn.t-next    { background: rgba(30,122,62,0.08); border-color: rgba(30,122,62,0.25); color: var(--t-green); }
+    body.light-mode .timer-btn.t-pause   { background: var(--gold-faint); border-color: rgba(154,111,0,0.25); color: var(--gold); }
+    body.light-mode .timer-mini-row.t-active { color: #000000; }
+    body.light-mode .timer-mini-row.t-done   { color: #cccccc; }
+    body.light-mode .timer-mini-dot          { background: #e0e0e0; }
+    body.light-mode .timer-mini-row.t-active .timer-mini-dot { background: #000000; box-shadow: none; }
+    body.light-mode .timer-mini-row.t-done   .timer-mini-dot { background: var(--t-green); }
+
+    /* ── Light mode footer & action strip ── */
+    body.light-mode .footer-grid {
+      background: #f4f4f4;
+      border-top: 3px solid #0a0a0a;
+    }
+    body.light-mode .footer-grid::before { display: none; }
+    body.light-mode .footer-cell   { border-right-color: #e0e0e0; }
+    body.light-mode .footer-val    { color: #000000; text-shadow: none; }
+    body.light-mode .footer-label  { color: #888888; }
+    body.light-mode .footer-sub    { color: #aaaaaa; }
+    body.light-mode .action-strip  { background: #ffffff; border-top-color: #e0e0e0; }
+    body.light-mode .colophon      { color: #aaaaaa; }
+    body.light-mode .btn           { border-color: #d0d0d0; color: #555555; background: #ffffff; }
+    body.light-mode .btn:hover     { border-color: #0a0a0a; color: #000000; background: #f4f4f4; }
+    body.light-mode .btn-theme     { border-color: #d0d0d0; color: #555555; background: #ffffff; }
+    body.light-mode .btn-theme:hover { border-color: #0a0a0a; color: #000000; background: #f4f4f4; }
+    body.light-mode .btn-fill {
+      background: #0a0a0a;
+      border-color: #000000;
+      color: #ffffff;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+    body.light-mode .btn-fill:hover {
+      background: #2a2a2a;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.22);
+    }
+
+    /* ── Light mode confirm dialog ── */
+    body.light-mode .confirm-overlay { background: rgba(0,0,0,0.35); }
+    body.light-mode .confirm-box {
+      background: #ffffff;
+      border-color: #e0e0e0;
+      border-top: 3px solid #000000;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+    }
+    body.light-mode .confirm-title  { color: #000000; }
+    body.light-mode .confirm-msg    { color: #555555; }
+    body.light-mode .confirm-btns button { border-color: #d8d8d8; color: #555555; background: #ffffff; }
+    body.light-mode .confirm-btns button:hover { background: #f4f4f4; color: #000000; }
+    body.light-mode .confirm-btns .confirm-ok { background: #0a0a0a; border-color: #000; color: #fff; }
+    body.light-mode .confirm-btns .confirm-ok:hover { background: #333333; }
+
+    /* ── Guide modal ── */
+    .guide-overlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0,0,0,0.72);
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+      visibility: hidden; opacity: 0;
+      transition: visibility 0s 0.22s, opacity 0.22s var(--ease);
+    }
+    .guide-overlay.show {
+      visibility: visible; opacity: 1;
+      transition: visibility 0s 0s, opacity 0.22s var(--ease);
+    }
+    .guide-box {
+      background: var(--ink-card);
+      border: 1px solid var(--gold-rim);
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-gold);
+      width: 100%; max-width: 560px;
+      max-height: 90vh;
+      display: flex; flex-direction: column;
+      transform: translateY(12px);
+      transition: transform 0.22s var(--ease);
+    }
+    .guide-overlay.show .guide-box { transform: translateY(0); }
+    .guide-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid var(--ink-border);
+      flex-shrink: 0;
+    }
+    .guide-header-left { display: flex; align-items: center; gap: 10px; }
+    .guide-icon {
+      width: 30px; height: 30px;
+      background: var(--gold-faint);
+      border: 1px solid var(--gold-rim);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--gold); font-size: 14px;
+    }
+    .guide-title {
+      font-family: var(--font-display);
+      font-size: 15px; font-weight: 700;
+      color: var(--white); letter-spacing: 0.5px;
+    }
+    .guide-subtitle {
+      font-family: var(--font-mono);
+      font-size: 10px; color: var(--fog);
+      letter-spacing: 0.5px; text-transform: uppercase;
+      margin-top: 1px;
+    }
+    .guide-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--fog); font-size: 18px; line-height: 1;
+      padding: 4px 6px; border-radius: var(--radius-sm);
+      transition: var(--transition);
+    }
+    .guide-close:hover { color: var(--white); background: var(--ink-hover); }
+    .guide-progress-bar {
+      height: 2px; background: var(--ink-border); flex-shrink: 0;
+    }
+    .guide-progress-fill {
+      height: 100%; background: var(--gold);
+      transition: width 0.3s var(--ease);
+    }
+    .guide-body {
+      padding: 22px 20px 18px;
+      overflow-y: auto; flex: 1;
+      scrollbar-width: thin; scrollbar-color: var(--ink-dim) transparent;
+    }
+    .guide-step-num {
+      font-family: var(--font-mono); font-size: 10px;
+      color: var(--gold); letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+    .guide-step-heading {
+      font-family: var(--font-display);
+      font-size: 20px; font-weight: 700;
+      color: var(--white); line-height: 1.2;
+      margin-bottom: 6px;
+    }
+    .guide-step-subheading {
+      font-family: var(--font-body);
+      font-size: 13px; color: var(--gold);
+      font-style: italic; margin-bottom: 16px;
+    }
+    .guide-step-desc {
+      font-family: var(--font-body);
+      font-size: 15px; line-height: 1.65;
+      color: var(--smoke); margin-bottom: 14px;
+    }
+    .guide-step-desc p { margin: 0 0 10px; }
+    .guide-step-desc p:last-child { margin-bottom: 0; }
+    .guide-checklist {
+      list-style: none; margin: 0; padding: 0;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .guide-checklist li {
+      display: flex; gap: 10px; align-items: flex-start;
+      font-family: var(--font-body); font-size: 14px;
+      color: var(--smoke); line-height: 1.5;
+    }
+    .guide-checklist li .gc-num {
+      flex-shrink: 0;
+      width: 20px; height: 20px;
+      background: var(--gold-faint);
+      border: 1px solid var(--gold-rim);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 9px;
+      color: var(--gold); font-weight: 500;
+      margin-top: 2px;
+    }
+    .guide-callout {
+      background: var(--gold-faint);
+      border: 1px solid var(--gold-rim);
+      border-left: 3px solid var(--gold);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-top: 14px;
+      font-family: var(--font-body); font-size: 13px;
+      color: var(--mist); line-height: 1.55;
+    }
+    .guide-callout strong { color: var(--gold); font-weight: 600; }
+    .guide-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+      border-top: 1px solid var(--ink-border);
+      flex-shrink: 0; gap: 10px;
+    }
+    .guide-dots {
+      display: flex; gap: 5px; align-items: center;
+    }
+    .guide-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--ink-dim); cursor: pointer;
+      transition: var(--transition);
+    }
+    .guide-dot.active { background: var(--gold); width: 16px; border-radius: 3px; }
+    .guide-nav { display: flex; gap: 8px; }
+    .guide-btn {
+      font-family: var(--font-mono); font-size: 11px;
+      letter-spacing: 0.5px; text-transform: uppercase;
+      padding: 7px 16px;
+      border: 1px solid var(--ink-rim);
+      border-radius: var(--radius-sm);
+      background: none; color: var(--mist);
+      cursor: pointer; transition: var(--transition);
+    }
+    .guide-btn:hover { border-color: var(--gold-pale); color: var(--smoke); }
+    .guide-btn.g-primary {
+      background: linear-gradient(135deg, var(--gold-deep), var(--gold));
+      border-color: var(--gold); color: var(--ink); font-weight: 500;
+    }
+    .guide-btn.g-primary:hover {
+      background: linear-gradient(135deg, var(--gold), var(--gold-bright));
+    }
+    .guide-btn:disabled { opacity: 0.25; cursor: not-allowed; pointer-events: none; }
+    /* light mode guide */
+    body.light-mode .guide-box { border-color: rgba(154,111,0,0.22); }
+    body.light-mode .guide-step-desc { color: var(--smoke); }
+    body.light-mode .guide-checklist li { color: #222; }
+    body.light-mode .guide-callout { color: #555; }
+
+    /* ── Light mode masthead quote ── */
+    body.light-mode .masthead-quote { color: #aaaaaa; }
+    body.light-mode .masthead-quote::before,
+    body.light-mode .masthead-quote::after { color: #cccccc; }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      background: var(--ink);
+      color: var(--smoke);
+      font-family: var(--font-body);
+      min-height: 100dvh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before {
+      content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.5;
+    }
+
+    .masthead {
+      position: sticky; top: 0; z-index: 500;
+      background: rgba(7,9,15,0.97);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border-bottom: 1px solid var(--ink-border);
+      flex-shrink: 0;
+    }
+    .masthead::before {
+      content: ''; display: block; height: 2px;
+      background: linear-gradient(90deg, transparent 0%, var(--gold-deep) 15%, var(--gold) 40%, var(--gold-bright) 50%, var(--gold) 60%, var(--gold-deep) 85%, transparent 100%);
+    }
+
+    .masthead-top {
+      display: grid;
+      grid-template-columns: 210px 1fr 1fr auto;
+      border-bottom: 1px solid var(--ink-border);
+    }
+    .masthead-brand {
+      padding: 12px 22px 12px 26px;
+      border-right: 1px solid var(--ink-border);
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .brand-eyebrow {
+      font-family: var(--font-mono); font-size: 6px;
+      letter-spacing: 6px; text-transform: uppercase; color: var(--gold-pale); margin-bottom: 5px;
+    }
+    .brand-name {
+      font-family: var(--font-display); font-size: 21px; font-weight: 900;
+      color: var(--gold); line-height: 1; letter-spacing: 8px;
+      text-shadow: var(--shadow-gold);
+    }
+    .meta-cell {
+      padding: 10px 20px;
+      border-right: 1px solid var(--ink-border);
+      display: flex; flex-direction: column; justify-content: center;
+    }
+    .meta-cell-label {
+      font-family: var(--font-mono); font-size: 6px;
+      letter-spacing: 5px; text-transform: uppercase; color: var(--gold-pale); margin-bottom: 4px;
+    }
+    .meta-cell input {
+      background: transparent; border: none; outline: none;
+      font-family: var(--font-body); font-size: 16px; font-weight: 500;
+      color: var(--smoke); width: 100%; letter-spacing: 0.3px;
+    }
+    .meta-cell input::placeholder { color: var(--fog); font-style: italic; font-weight: 300; }
+    .meta-cell input:focus { color: var(--white); }
+    .masthead-date {
+      padding: 10px 22px;
+      display: flex; flex-direction: column;
+      justify-content: center; align-items: flex-end; gap: 1px;
+    }
+    .date-day    { font-family: var(--font-display); font-size: 22px; font-weight: 900; font-style: italic; color: var(--gold); line-height: 1; letter-spacing: 1px; }
+    .date-month  { font-family: var(--font-mono); font-size: 7px; letter-spacing: 3px; text-transform: uppercase; color: var(--mist); margin-top: 2px; }
+    .date-weekday{ font-family: var(--font-mono); font-size: 6px; letter-spacing: 3px; text-transform: uppercase; color: var(--fog); }
+    .masthead-quote {
+      padding: 5px 56px;
+      font-family: var(--font-body); font-style: italic; font-size: 11px;
+      color: var(--fog); text-align: center; letter-spacing: 0.8px; position: relative;
+    }
+    .masthead-quote::before, .masthead-quote::after {
+      content: '◆'; position: absolute; top: 50%; transform: translateY(-50%);
+      color: var(--gold-deep); font-size: 6px; opacity: 0.7;
+    }
+    .masthead-quote::before { left: 28px; }
+    .masthead-quote::after  { right: 28px; }
+
+    .sessions-wrap {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      flex: 1 1 auto; position: relative; z-index: 1;
+    }
+    @media (max-width: 900px) { .sessions-wrap { grid-template-columns: 1fr; } }
+
+    .session-col {
+      border-right: 1px solid var(--ink-border);
+      display: flex; flex-direction: column;
+      background: var(--ink-card);
+      opacity: 0;
+      animation: revealCol 0.6s var(--ease) forwards;
+      position: relative;
+    }
+    .session-col:last-child { border-right: none; }
+    .session-col:nth-child(1) { animation-delay: 0.10s; }
+    .session-col:nth-child(2) { animation-delay: 0.22s; }
+    .session-col:nth-child(3) { animation-delay: 0.34s; }
+    @keyframes revealCol { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+
+    .session-col.has-time::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
+      background: linear-gradient(180deg, transparent 0%, var(--gold) 20%, var(--gold-bright) 50%, var(--gold) 80%, transparent 100%);
+      opacity: 0.7; z-index: 2;
+    }
+
+    .sess-head {
+      background: linear-gradient(158deg, rgba(16,20,34,0) 0%, var(--ink-card) 70%);
+      background-color: #0f1323;
+      border-bottom: 1px solid var(--ink-border);
+      padding: 16px 20px 14px 22px;
+      position: relative; overflow: hidden; flex-shrink: 0;
+    }
+    .sess-head::before {
+      content: attr(data-numeral);
+      position: absolute; right: -4px; bottom: -18px;
+      font-family: var(--font-display); font-size: 100px; font-weight: 900; font-style: italic;
+      color: rgba(196,163,90,0.04); line-height: 1; pointer-events: none; user-select: none;
+    }
+    .sess-head-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+    .sess-head-left { flex: 1; }
+    .sess-numeral {
+      font-family: var(--font-mono); font-size: 6.5px;
+      letter-spacing: 5px; text-transform: uppercase; color: var(--gold-pale); margin-bottom: 6px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .sess-numeral::after { content: ''; flex: 1; max-width: 28px; height: 1px; background: linear-gradient(90deg, var(--gold-pale), transparent); }
+    .sess-name {
+      font-family: var(--font-display); font-size: 25px; font-weight: 700; font-style: italic;
+      line-height: 1; letter-spacing: 1px; color: var(--smoke); margin-bottom: 4px;
+      transition: color 0.3s var(--ease);
+    }
+    .session-col.has-time .sess-name { color: var(--gold); text-shadow: var(--shadow-gold); }
+    .sess-window { font-family: var(--font-mono); font-size: 7px; color: var(--fog); letter-spacing: 2px; }
+
+    .sess-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 1px;
+      background: transparent; border: 1px solid var(--ink-rim);
+      font-family: var(--font-mono); font-size: 6px; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--fog); transition: var(--transition); white-space: nowrap;
+    }
+    .sess-badge.active { border-color: var(--gold-pale); color: var(--gold); background: var(--gold-faint); }
+    .badge-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--fog); flex-shrink: 0; }
+    .sess-badge.active .badge-dot { background: var(--gold-bright); box-shadow: 0 0 6px var(--gold-bright); animation: pulse 2.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .sess-start-row {
+      display: flex; align-items: center; gap: 12px;
+      margin-top: 13px; padding-top: 12px;
+      border-top: 1px solid var(--ink-border);
+    }
+    .sess-start-label { font-family: var(--font-mono); font-size: 6.5px; letter-spacing: 5px; text-transform: uppercase; color: var(--fog); }
+    .sess-time-input {
+      background: rgba(196,163,90,0.05); border: 1px solid var(--gold-rim);
+      border-radius: var(--radius-xs); padding: 5px 10px;
+      font-family: var(--font-mono); font-size: 13px; font-weight: 500;
+      color: var(--gold-bright); outline: none; cursor: pointer;
+      transition: var(--transition); color-scheme: dark; letter-spacing: 1px;
+    }
+    .sess-time-input:focus {
+      border-color: var(--gold); background: rgba(196,163,90,0.10);
+      box-shadow: 0 0 0 3px rgba(196,163,90,0.08);
+    }
+    .sess-time-input::-webkit-calendar-picker-indicator {
+      filter: invert(70%) sepia(40%) saturate(500%) hue-rotate(10deg); cursor: pointer; opacity: 0.6;
+    }
+
+    .sess-progress { height: 1px; background: var(--ink-border); overflow: hidden; flex-shrink: 0; }
+    .sess-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold-deep), var(--gold-bright), var(--gold));
+      transition: width 0.5s var(--ease); width: 0%;
+    }
+
+    .calc-strip {
+      display: grid; grid-template-columns: repeat(4,1fr);
+      background: var(--ink-mid); border-bottom: 1px solid var(--ink-border);
+      flex-shrink: 0;
+    }
+    .calc-cell { padding: 9px 10px 8px; border-right: 1px solid var(--ink-border); }
+    .calc-cell:last-child { border-right: none; }
+    .calc-label { font-family: var(--font-mono); font-size: 6px; letter-spacing: 3.5px; text-transform: uppercase; color: var(--fog); margin-bottom: 4px; }
+    .calc-val { font-family: var(--font-mono); font-size: 17px; font-weight: 400; color: var(--gold-bright); line-height: 1; }
+    .calc-val.empty { color: var(--ink-dim); font-size: 13px; font-weight: 300; }
+    .calc-unit { font-size: 8px; color: var(--gold-pale); margin-left: 1px; }
+
+    .section-banner {
+      padding: 5px 22px;
+      font-family: var(--font-mono); font-size: 5.5px; letter-spacing: 6px;
+      text-transform: uppercase; color: var(--gold-pale);
+      border-bottom: 1px solid var(--ink-border);
+      background: rgba(196,163,90,0.025);
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    }
+    .section-banner::before { content: ''; display: block; width: 16px; height: 1px; background: var(--gold-pale); opacity: 0.55; flex-shrink: 0; }
+    .section-banner::after  { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--ink-border), transparent); opacity: 0.5; }
+    .actual-banner {
+      padding: 5px 22px;
+      font-family: var(--font-mono); font-size: 5.5px; letter-spacing: 6px;
+      text-transform: uppercase; color: var(--mist);
+      background: var(--ink-mid);
+      border-top: 1px solid var(--ink-border); border-bottom: 1px solid var(--ink-border);
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+    }
+    .actual-banner::before { content: ''; display: block; width: 16px; height: 1px; background: var(--mist); opacity: 0.45; flex-shrink: 0; }
+    .actual-banner::after  { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, var(--ink-border), transparent); opacity: 0.4; }
+
+    .table-head {
+      display: grid; grid-template-columns: 30px 1fr 52px 52px;
+      border-bottom: 1px solid var(--ink-border); padding: 4px 22px;
+      background: rgba(255,255,255,0.008); flex-shrink: 0;
+    }
+    .actual-table-head {
+      display: grid; grid-template-columns: 30px 1fr 62px;
+      border-bottom: 1px solid var(--ink-border); padding: 4px 22px;
+      background: rgba(255,255,255,0.008); flex-shrink: 0;
+    }
+    .th { font-family: var(--font-mono); font-size: 6px; letter-spacing: 3px; text-transform: uppercase; color: var(--fog); }
+    .th.c { text-align: center; }
+
+    .item-row {
+      display: grid; grid-template-columns: 30px 1fr 52px 52px;
+      border-bottom: 1px solid rgba(26,32,53,0.8);
+      align-items: center; padding: 0 22px;
+      transition: background 0.14s; background: var(--ink-card);
+    }
+    .item-row > span, .item-row > div:not(.microsteps-panel) { min-height: 44px; display: flex; align-items: center; }
+    .item-row:nth-child(even) { background: rgba(10,13,22,0.65); }
+    .item-row:hover { background: var(--ink-hover); }
+    .item-row.last-planned { border-bottom: none; }
+    .item-row:nth-child(even):hover { background: var(--ink-hover); }
+
+    .actual-item-row {
+      display: grid; grid-template-columns: 30px 1fr 62px;
+      border-bottom: 1px solid rgba(26,32,53,0.6);
+      min-height: 44px; align-items: center; padding: 0 22px;
+      transition: background 0.14s;
+    }
+    .actual-item-row:nth-child(odd)  { background: var(--ink-card); }
+    .actual-item-row:nth-child(even) { background: rgba(9,12,20,0.75); }
+    .actual-item-row.last-actual { border-bottom: none; }
+    .actual-item-row:hover { background: var(--ink-hover); }
+
+    .item-num { font-family: var(--font-mono); font-size: 8px; color: var(--ink-dim); font-weight: 400; letter-spacing: 0.5px; }
+    .item-name-label {
+      font-family: var(--font-body); font-size: 14.5px; font-weight: 500;
+      color: var(--smoke); padding: 8px 8px 8px 0; line-height: 1.25;
+      flex-direction: column; align-items: flex-start;
+    }
+    .item-name-mr {
+      font-family: var(--font-body); font-size: 10px; color: var(--fog);
+      font-style: italic; font-weight: 300; letter-spacing: 0.2px; line-height: 1.3;
+      display: block; margin-top: 2px;
+    }
+    .item-dur {
+      font-family: var(--font-mono); font-size: 11px; font-weight: 400;
+      color: var(--gold); text-align: center; padding: 3px; letter-spacing: 0.5px;
+    }
+    .item-dur.dim { color: var(--ink-dim); font-weight: 300; }
+    /* Span wrapping the practice-minutes text inside the item-dur cell */
+    .dur-prac-val { font: inherit; color: inherit; letter-spacing: inherit; }
+
+    .commit-input {
+      background: rgba(196,163,90,0.05); border: 1px solid var(--gold-rim);
+      border-radius: var(--radius-xs); padding: 6px 4px;
+      font-family: var(--font-mono); font-size: 12px; font-weight: 500;
+      color: var(--gold-bright); outline: none; text-align: center;
+      width: 100%; transition: var(--transition);
+      -moz-appearance: textfield; letter-spacing: 1px;
+    }
+    .commit-input::-webkit-inner-spin-button,
+    .commit-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .commit-input:focus {
+      border-color: var(--gold); background: rgba(196,163,90,0.10);
+      box-shadow: 0 0 0 3px rgba(196,163,90,0.08);
+    }
+    .commit-input::placeholder { color: var(--ink-dim); font-style: italic; font-size: 9px; }
+    .commit-input.auto-filled { color: var(--gold-pale); border-color: rgba(196,163,90,0.13); background: rgba(196,163,90,0.03); }
+
+    /* Editable item name in Actual section */
+    .actual-name-input {
+      background: transparent; border: none; border-bottom: 1px solid transparent;
+      outline: none; width: 100%;
+      font-family: var(--font-body); font-size: 14.5px; font-weight: 500;
+      color: var(--smoke); letter-spacing: 0.2px; padding: 2px 0;
+      transition: border-color 0.18s var(--ease), background 0.18s var(--ease);
+      cursor: text;
+    }
+    .actual-name-input:hover  { border-bottom-color: var(--ink-rim); }
+    .actual-name-input:focus  {
+      border-bottom-color: var(--gold-pale);
+      background: rgba(196,163,90,0.03);
+      color: var(--white);
+    }
+    .actual-name-input::placeholder { color: var(--fog); font-style: italic; font-weight: 300; }
+    .actual-name-input.customised   { color: var(--gold-bright); }
+
+    /* ═══ TIMER SYSTEM ═══ */
+    .sess-timer {
+      background: linear-gradient(160deg, var(--ink-mid) 0%, var(--ink-card) 100%);
+      border-top: 1px solid var(--ink-border);
+      padding: 16px 20px 14px;
+      position: relative; overflow: hidden;
+    }
+    .sess-timer::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 50% -20%, rgba(196,163,90,0.07) 0%, transparent 65%);
+      pointer-events: none;
+    }
+    .timer-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+    .timer-label {
+      font-family: var(--font-mono); font-size: 6px; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--gold-pale); display: flex; align-items: center; gap: 7px;
+    }
+    .timer-label::before { content: ''; display: block; width: 14px; height: 1px; background: var(--gold-pale); }
+    .timer-phase-badge {
+      font-family: var(--font-mono); font-size: 6px; letter-spacing: 3px;
+      text-transform: uppercase; padding: 2px 8px; border-radius: var(--radius-xs);
+      border: 1px solid var(--ink-border); color: var(--fog); transition: all 0.3s ease;
+    }
+    .timer-phase-badge.prep { border-color: var(--gold-rim); color: var(--gold-pale); background: var(--gold-faint); }
+    .timer-phase-badge.prac { border-color: var(--t-green-dim); color: var(--t-green); background: var(--t-green-dim); }
+    .timer-phase-badge.done { border-color: var(--t-blue-dim); color: var(--t-blue); background: var(--t-blue-dim); }
+
+    .timer-item-name {
+      font-family: var(--font-body); font-size: 14px; font-style: italic; font-weight: 500;
+      color: var(--smoke); margin-bottom: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 20px;
+    }
+    .timer-item-num {
+      font-family: var(--font-mono); font-size: 7px; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--fog); margin-bottom: 8px;
+    }
+
+    .timer-practice-view { display: flex; align-items: center; gap: 16px; margin: 8px 0 10px; }
+    .timer-digital-wrap {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      flex-shrink: 0; width: 64px; height: 64px;
+      border: 1px solid var(--t-green-dim); border-radius: var(--radius-sm);
+      background: var(--ink-card); position: relative;
+    }
+    .timer-digital-time { font-family: var(--font-mono); font-size: 17px; font-weight: 400; color: var(--t-green); line-height: 1; letter-spacing: 1px; }
+    .timer-digital-label { font-family: var(--font-mono); font-size: 6px; letter-spacing: 3px; text-transform: uppercase; color: var(--fog); margin-top: 4px; }
+    .timer-prac-bar-wrap { height: 1px; background: var(--ink-border); margin-top: 6px; overflow: hidden; width: 64px; flex-shrink: 0; }
+    .timer-prac-bar { height: 100%; background: var(--t-green); transition: width 1s linear; }
+
+    .timer-items-mini { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+    .timer-mini-row {
+      display: flex; align-items: center; gap: 7px;
+      font-family: var(--font-mono); font-size: 7.5px; color: var(--fog);
+      transition: all 0.25s; min-width: 0; line-height: 1.4; letter-spacing: 0.5px;
+    }
+    .timer-mini-row.t-active { color: var(--smoke); }
+    .timer-mini-row.t-done   { color: var(--ink-dim); }
+    .timer-mini-dot { width: 4px; height: 4px; border-radius: 50%; flex-shrink: 0; background: var(--ink-border); transition: all 0.3s; }
+    .timer-mini-row.t-active .timer-mini-dot { background: var(--gold); box-shadow: 0 0 6px var(--gold-glow); }
+    .timer-mini-row.t-done   .timer-mini-dot { background: var(--t-green); }
+    .timer-mini-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+
+    .timer-controls { display: flex; gap: 8px; align-items: center; }
+    .timer-btn {
+      font-family: var(--font-mono); font-size: 7px; font-weight: 500;
+      letter-spacing: 2.5px; text-transform: uppercase;
+      padding: 8px 12px; border-radius: var(--radius-xs);
+      cursor: pointer; transition: var(--transition);
+      border: 1px solid var(--ink-border); background: transparent; color: var(--mist);
+    }
+    .timer-btn:hover { background: var(--ink-hover); color: var(--smoke); border-color: var(--ink-rim); }
+    .timer-btn.t-primary { background: linear-gradient(135deg, var(--gold-deep), var(--gold)); border-color: var(--gold); color: var(--ink); flex: 1; }
+    .timer-btn.t-primary:hover { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); }
+    .timer-btn.t-next { background: var(--t-green-dim); border-color: rgba(109,201,138,0.3); color: var(--t-green); flex: 1; }
+    .timer-btn.t-next:hover { background: rgba(109,201,138,0.25); }
+    .timer-btn.t-pause { background: var(--gold-faint); border-color: var(--gold-rim); color: var(--gold-bright); flex: 1; }
+    .timer-btn.t-pause:hover { background: rgba(196,163,90,0.15); }
+    .timer-btn.t-reset { color: var(--fog); }
+    .timer-btn:disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; }
+    .timer-no-items { font-family: var(--font-mono); font-size: 8px; color: var(--ink-dim); letter-spacing: 2px; text-align: center; padding: 6px 0; font-style: italic; }
+
+    /* ═══ 3-2-1 PREP PANEL ═══ */
+    .timer-prep-view { display: none; flex-direction: column; gap: 6px; margin: 8px 0 10px; }
+    .timer-prep-view.active { display: flex; }
+    .prep-task-row {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 8px 10px; border-radius: var(--radius-xs);
+      border: 1px solid var(--ink-border); background: var(--ink-card);
+      cursor: pointer; transition: var(--transition); user-select: none;
+      opacity: 0.28; pointer-events: none;
+    }
+    .prep-task-row.unlocked { opacity: 1; pointer-events: auto; }
+    .prep-task-row.unlocked:hover { border-color: var(--ink-rim); background: var(--ink-hover); }
+    .prep-task-row.checked { border-color: rgba(109,201,138,0.3); background: var(--t-green-dim); opacity: 1; pointer-events: auto; }
+    .prep-task-row.checked .prep-text { color: var(--ink-dim); text-decoration: line-through; text-decoration-color: var(--fog); }
+    .prep-dot {
+      width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+      border: 1px solid var(--ink-rim); background: transparent;
+      margin-top: 1px; transition: all 0.2s; position: relative;
+    }
+    .prep-task-row.checked .prep-dot { border-color: var(--t-green); background: var(--t-green); }
+    .prep-task-row.checked .prep-dot::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--ink); line-height: 1; }
+    .prep-num { font-family: var(--font-mono); font-size: 7px; color: var(--gold-pale); letter-spacing: 1px; flex-shrink: 0; padding-top: 2px; min-width: 14px; }
+    .prep-text { font-family: var(--font-body); font-size: 11.5px; color: var(--smoke); line-height: 1.45; flex: 1; }
+    .prep-launch-btn {
+      width: 100%; margin-top: 2px;
+      font-family: var(--font-mono); font-size: 7px; font-weight: 500;
+      letter-spacing: 3px; text-transform: uppercase;
+      padding: 9px 12px; border-radius: var(--radius-xs);
+      transition: var(--transition);
+      border: 1px solid var(--ink-border); background: transparent; color: var(--fog);
+    }
+    .prep-launch-btn:not(:disabled) {
+      background: linear-gradient(135deg, var(--gold-deep), var(--gold));
+      border-color: var(--gold); color: var(--ink); cursor: pointer;
+    }
+    .prep-launch-btn:not(:disabled):hover { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); }
+    .prep-launch-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+
+    /* ═══ MICROSTEP EXECUTION VIEW ═══ */
+    .ms-exec-view {
+      display: none; flex-direction: column; gap: 0; margin: 8px 0 10px;
+    }
+    .ms-exec-view.active { display: flex; }
+
+    /* big countdown ring area */
+    .ms-exec-top {
+      display: flex; align-items: center; gap: 14px; margin-bottom: 10px;
+    }
+    .ms-exec-clock {
+      flex-shrink: 0; width: 72px; height: 72px;
+      border: 1px solid var(--t-green-dim); border-radius: var(--radius-sm);
+      background: var(--ink-card);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .ms-exec-clock.idle-clock { border-color: var(--ink-border); }
+    .ms-exec-time  { font-family: var(--font-mono); font-size: 18px; font-weight: 400; color: var(--t-green); line-height: 1; letter-spacing: 1px; }
+    .ms-exec-time.idle-time  { color: var(--fog); }
+    .ms-exec-lbl   { font-family: var(--font-mono); font-size: 6px; letter-spacing: 3px; text-transform: uppercase; color: var(--fog); margin-top: 4px; }
+    .ms-exec-bar-wrap { height: 1px; background: var(--ink-border); margin-top: 5px; overflow: hidden; width: 72px; flex-shrink: 0; }
+    .ms-exec-bar { height: 100%; background: var(--t-green); transition: width 1s linear; }
+
+    .ms-exec-info { flex: 1; min-width: 0; }
+    .ms-exec-step-num { font-family: var(--font-mono); font-size: 6.5px; letter-spacing: 4px; text-transform: uppercase; color: var(--fog); margin-bottom: 4px; }
+    .ms-exec-step-name {
+      font-family: var(--font-body); font-size: 13px; font-style: italic; font-weight: 500;
+      color: var(--smoke); line-height: 1.35; margin-bottom: 4px;
+    }
+    .ms-exec-step-dur { font-family: var(--font-mono); font-size: 8px; color: var(--gold-pale); letter-spacing: 1px; }
+
+    /* step list */
+    .ms-exec-list { display: flex; flex-direction: column; gap: 0; }
+    .ms-exec-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-family: var(--font-mono); font-size: 8px; color: var(--fog);
+      transition: all 0.2s; cursor: default;
+    }
+    .ms-exec-row:last-child { border-bottom: none; }
+    .ms-exec-row.ms-active { color: var(--smoke); background: rgba(196,163,90,0.04); padding-left: 4px; border-radius: 2px; }
+    .ms-exec-row.ms-done   { color: var(--ink-dim); }
+    .ms-exec-row.ms-skip   { color: var(--ink-dim); text-decoration: line-through; }
+    .ms-exec-rdot {
+      width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+      background: var(--ink-border); transition: all 0.25s;
+    }
+    .ms-exec-row.ms-active .ms-exec-rdot { background: var(--gold); box-shadow: 0 0 5px var(--gold-glow); }
+    .ms-exec-row.ms-done   .ms-exec-rdot { background: var(--t-green); }
+    .ms-exec-row.ms-skip   .ms-exec-rdot { background: var(--fog); }
+    .ms-exec-rname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: 0.3px; line-height: 1.5; }
+    .ms-exec-rdur  { color: var(--gold-pale); white-space: nowrap; font-size: 7px; letter-spacing: 0.5px; }
+
+    /* ms step action buttons */
+    .ms-exec-actions { display: flex; gap: 6px; margin-top: 8px; }
+    .ms-exec-btn {
+      font-family: var(--font-mono); font-size: 7px; font-weight: 500;
+      letter-spacing: 2px; text-transform: uppercase;
+      padding: 7px 10px; border-radius: var(--radius-xs);
+      cursor: pointer; transition: var(--transition);
+      border: 1px solid var(--ink-border); background: transparent; color: var(--mist);
+    }
+    .ms-exec-btn:hover { background: var(--ink-hover); color: var(--smoke); }
+    .ms-exec-btn:disabled { opacity: 0.25; cursor: not-allowed; }
+    .ms-exec-btn.ms-start { background: linear-gradient(135deg, var(--gold-deep), var(--gold)); border-color: var(--gold); color: var(--ink); flex: 1; }
+    .ms-exec-btn.ms-start:hover { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); }
+    .ms-exec-btn.ms-pause { background: var(--gold-faint); border-color: var(--gold-rim); color: var(--gold-bright); flex: 1; }
+    .ms-exec-btn.ms-done-btn { background: var(--t-green-dim); border-color: rgba(109,201,138,0.3); color: var(--t-green); flex: 1; }
+    .ms-exec-btn.ms-skip-btn { color: var(--fog); }
+
+    /* light mode */
+    body.light-mode .ms-exec-clock { background: #fff; border-color: rgba(30,122,62,0.2); }
+    body.light-mode .ms-exec-clock.idle-clock { border-color: #e0e0e0; }
+    body.light-mode .ms-exec-time  { color: var(--t-green); }
+    body.light-mode .ms-exec-time.idle-time { color: #aaa; }
+    body.light-mode .ms-exec-step-name { color: #111; }
+    body.light-mode .ms-exec-row.ms-active { background: rgba(0,0,0,0.03); color: #111; }
+    body.light-mode .ms-exec-btn.ms-start { color: #fff; }
+
+    .footer-grid {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      background: var(--ink-mid); border-top: 1px solid var(--ink-border);
+      position: relative; z-index: 1; flex-shrink: 0;
+    }
+    .footer-grid::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: linear-gradient(90deg, transparent 0%, var(--gold-deep) 20%, var(--gold) 50%, var(--gold-deep) 80%, transparent 100%);
+      opacity: 0.45; pointer-events: none;
+    }
+    .footer-cell { padding: 14px 24px; border-right: 1px solid var(--ink-border); display: flex; align-items: baseline; gap: 14px; }
+    .footer-cell:last-child { border-right: none; }
+    .footer-label { font-family: var(--font-mono); font-size: 6.5px; letter-spacing: 4px; text-transform: uppercase; color: var(--fog); flex-shrink: 0; }
+    .footer-val {
+      font-family: var(--font-display); font-size: 27px; font-weight: 700; font-style: italic;
+      color: var(--gold); line-height: 1; text-shadow: var(--shadow-gold); letter-spacing: 1px;
+    }
+    .footer-sub { font-family: var(--font-mono); font-size: 6.5px; color: var(--fog); letter-spacing: 1px; }
+
+    /* ═══ ACTION STRIP ═══ */
+    .action-strip {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 26px; border-top: 1px solid var(--ink-border);
+      background: var(--ink); position: relative; z-index: 1; flex-shrink: 0;
+    }
+    .colophon { font-family: var(--font-body); font-style: italic; font-size: 11px; color: var(--fog); letter-spacing: 0.5px; }
+    .action-btns { display: flex; gap: 7px; }
+    .btn {
+      font-family: var(--font-mono); font-size: 7px; font-weight: 500;
+      letter-spacing: 3px; text-transform: uppercase;
+      padding: 8px 18px; border: 1px solid var(--ink-border); cursor: pointer;
+      background: transparent; color: var(--mist); transition: var(--transition);
+      border-radius: var(--radius-xs);
+    }
+    .btn:hover { border-color: var(--ink-rim); color: var(--smoke); background: var(--ink-lift); }
+    .btn-theme {
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--font-mono); font-size: 7px; font-weight: 500;
+      letter-spacing: 3px; text-transform: uppercase;
+      padding: 8px 16px; border: 1px solid var(--ink-border); cursor: pointer;
+      background: transparent; color: var(--mist); transition: var(--transition);
+      border-radius: var(--radius-xs);
+    }
+    .btn-theme:hover { border-color: var(--ink-rim); color: var(--smoke); background: var(--ink-lift); }
+    .btn-theme svg { flex-shrink: 0; transition: var(--transition); }
+    .btn-fill {
+      background: linear-gradient(135deg, var(--gold-deep) 0%, var(--gold) 60%, var(--gold-bright) 100%);
+      border-color: var(--gold); color: var(--ink); font-weight: 500;
+      box-shadow: 0 2px 12px rgba(196,163,90,0.20);
+    }
+    .btn-fill:hover { background: linear-gradient(135deg, var(--gold) 0%, var(--gold-bright) 100%); box-shadow: 0 4px 20px rgba(196,163,90,0.30); }
+
+    /* ═══ CONFIRM ═══
+       BUG FIX: was display:none / display:flex toggle — impossible because flex
+       overrides none but not the other way reliably in all browsers.
+       Now using visibility + opacity for the overlay, flex always set. */
+    .confirm-overlay {
+      display: flex; /* always flex */
+      position: fixed; inset: 0;
+      background: rgba(7,9,15,0.88);
+      z-index: 2000;
+      align-items: center; justify-content: center;
+      backdrop-filter: blur(6px);
+      visibility: hidden; opacity: 0;
+      transition: opacity 0.18s var(--ease), visibility 0.18s;
+    }
+    .confirm-overlay.show { visibility: visible; opacity: 1; }
+    .confirm-box {
+      background: var(--ink-lift); border: 1px solid var(--ink-border);
+      border-top: 2px solid var(--gold); border-radius: var(--radius-sm);
+      padding: 28px 32px; max-width: 360px; width: 90%;
+      transform: translateY(12px); transition: transform 0.18s var(--ease);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+    .confirm-overlay.show .confirm-box { transform: translateY(0); }
+    .confirm-title { font-family: var(--font-display); font-size: 14px; font-style: italic; color: var(--gold); margin-bottom: 8px; }
+    .confirm-msg { font-family: var(--font-mono); font-size: 10px; color: var(--mist); margin-bottom: 20px; line-height: 1.7; }
+    .confirm-btns { display: flex; gap: 8px; justify-content: flex-end; }
+    .confirm-btns button { font-family: var(--font-mono); font-size: 7.5px; font-weight: 500; letter-spacing: 2.5px; text-transform: uppercase; padding: 7px 16px; border-radius: var(--radius-xs); cursor: pointer; transition: var(--transition); border: 1px solid var(--ink-border); background: transparent; color: var(--mist); }
+    .confirm-btns button:hover { background: var(--ink-hover); color: var(--smoke); }
+    .confirm-btns .confirm-ok { background: linear-gradient(135deg, var(--gold-deep), var(--gold)); border-color: var(--gold); color: var(--ink); }
+    .confirm-btns .confirm-ok:hover { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); }
+
+    /* ═══ INSTALL BAR ═══ */
+    .install-bar { display: none; align-items: center; justify-content: space-between; padding: 9px 26px; background: linear-gradient(135deg, var(--gold-deep), var(--gold)); color: var(--ink); font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 2px; text-transform: uppercase; }
+    .install-bar.show { display: flex; }
+    .install-bar button { background: var(--ink); color: var(--gold); border: none; font-family: var(--font-mono); font-size: 7.5px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; padding: 5px 14px; cursor: pointer; border-radius: var(--radius-xs); }
+
+    /* ═══ RESPONSIVE ═══ */
+    @media (max-width: 1024px) { .masthead-top { grid-template-columns: auto 1fr auto; } .meta-cell:last-of-type { display: none; } }
+    @media (max-width: 640px) { .masthead-top { grid-template-columns: 1fr auto; } .masthead-brand { display: none; } .footer-cell { flex-direction: column; gap: 3px; align-items: flex-start; padding: 12px 16px; } .footer-val { font-size: 22px; } .action-strip { flex-direction: column; gap: 10px; } }
+
+    /* ═══ PRINT ═══ */
+    @page { size: A4 landscape; margin: 5mm; }
+    @media print {
+      *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; color-adjust: exact !important; transition: none !important; animation: none !important; }
+      body::before, .install-bar, .action-strip, .confirm-overlay, .sess-timer { display: none !important; }
+      html, body { background: #07090f !important; width: 100% !important; height: 100% !important; overflow: hidden !important; margin: 0 !important; padding: 0 !important; }
+      body { display: flex !important; flex-direction: column !important; }
+      .masthead { position: static !important; background: #07090f !important; border-bottom-color: #1a2035 !important; flex-shrink: 0 !important; }
+      .masthead::before { background: linear-gradient(90deg, transparent 0%, #6b5228 15%, #c4a35a 40%, #debb77 50%, #c4a35a 60%, #6b5228 85%, transparent 100%) !important; }
+      .masthead-top { height: 40px !important; }
+      .masthead-brand { padding: 4px 14px !important; }
+      .brand-eyebrow { font-size: 5pt !important; }
+      .brand-name { font-size: 13pt !important; text-shadow: none !important; -webkit-text-fill-color: #c4a35a !important; }
+      .meta-cell { padding: 3px 12px !important; }
+      .meta-cell-label { font-size: 5pt !important; }
+      .meta-cell input { font-size: 9pt !important; -webkit-text-fill-color: #dad5cb !important; }
+      .masthead-date { padding: 3px 14px !important; }
+      .date-day { font-size: 13pt !important; -webkit-text-fill-color: #c4a35a !important; }
+      .date-month { font-size: 5.5pt !important; }
+      .date-weekday { display: none !important; }
+      .masthead-quote { font-size: 6pt !important; padding: 3px 40px !important; }
+      .sessions-wrap { display: grid !important; grid-template-columns: repeat(3,1fr) !important; flex: 1 1 auto !important; width: 100% !important; overflow: hidden !important; min-height: 0 !important; }
+      .session-col { opacity: 1 !important; transform: none !important; animation: none !important; display: flex !important; flex-direction: column !important; overflow: hidden !important; min-height: 0 !important; }
+      .session-col::before { display: none !important; }
+      .session-col.has-time::before { display: block !important; width: 1px !important; }
+      .sess-head { padding: 5px 10px 5px 12px !important; flex-shrink: 0 !important; background: #0f1323 !important; }
+      .sess-head::before { display: none !important; }
+      .sess-numeral { font-size: 5pt !important; margin-bottom: 2px !important; }
+      .sess-numeral::after { display: none !important; }
+      .sess-name { font-size: 12pt !important; margin-bottom: 1px !important; }
+      .session-col.has-time .sess-name { -webkit-text-fill-color: #c4a35a !important; text-shadow: none !important; }
+      .sess-window { font-size: 5pt !important; }
+      .sess-badge { display: none !important; }
+      .sess-start-row { margin-top: 4px !important; padding-top: 4px !important; border-top-color: #1a2035 !important; }
+      .sess-start-label { font-size: 5pt !important; }
+      .sess-time-input { font-size: 7.5pt !important; padding: 2px 5px !important; border-color: rgba(196,163,90,0.3) !important; -webkit-text-fill-color: #debb77 !important; }
+      .sess-progress { display: none !important; }
+      .calc-strip { flex-shrink: 0 !important; background: #0c0f1a !important; }
+      .calc-cell { padding: 3px 6px !important; }
+      .calc-label { font-size: 4.5pt !important; }
+      .calc-val { font-size: 9pt !important; -webkit-text-fill-color: #debb77 !important; }
+      .calc-val.empty { -webkit-text-fill-color: #2b3450 !important; }
+      .calc-unit { font-size: 5.5pt !important; -webkit-text-fill-color: #8f7040 !important; }
+      .section-banner { padding: 2px 12px !important; font-size: 4.5pt !important; flex-shrink: 0 !important; background: rgba(196,163,90,0.04) !important; }
+      .section-banner::after { display: none !important; }
+      .actual-banner { padding: 2px 12px !important; font-size: 4.5pt !important; flex-shrink: 0 !important; background: #0c0f1a !important; }
+      .actual-banner::after { display: none !important; }
+      .table-head { grid-template-columns: 18px 1fr 34px 34px !important; padding: 2px 12px !important; flex-shrink: 0 !important; }
+      .actual-table-head { grid-template-columns: 18px 1fr 44px !important; padding: 2px 12px !important; flex-shrink: 0 !important; }
+      .th { font-size: 4.5pt !important; }
+      .item-row { grid-template-columns: 18px 1fr 34px 34px !important; padding: 0 12px !important; flex: 1 !important; min-height: 0 !important; border-bottom-color: rgba(26,32,53,0.9) !important; background: #0a0d18 !important; }
+      .item-row:nth-child(even) { background: rgba(9,12,20,0.8) !important; }
+      .actual-item-row { grid-template-columns: 18px 1fr 44px !important; padding: 0 12px !important; flex: 1 !important; min-height: 0 !important; }
+      .actual-item-row:nth-child(odd)  { background: #0a0d18 !important; }
+      .actual-item-row:nth-child(even) { background: #080b15 !important; }
+      .item-num { font-size: 5pt !important; }
+      .item-name-label { font-size: 7pt !important; padding: 1px 4px 1px 0 !important; -webkit-text-fill-color: #dad5cb !important; }
+      .item-name-mr { font-size: 5pt !important; -webkit-text-fill-color: #5a5650 !important; }
+      .item-dur { font-size: 7pt !important; -webkit-text-fill-color: #c4a35a !important; }
+      .item-dur.dim { -webkit-text-fill-color: #2b3450 !important; }
+      .commit-input { font-size: 7pt !important; border: none !important; background: transparent !important; box-shadow: none !important; -webkit-text-fill-color: #debb77 !important; padding: 0 !important; }
+      .commit-input.auto-filled { -webkit-text-fill-color: #8f7040 !important; }
+      .actual-name-input { font-size: 7pt !important; border: none !important; background: transparent !important; -webkit-text-fill-color: #dad5cb !important; padding: 0 !important; }
+      .actual-name-input.customised { -webkit-text-fill-color: #debb77 !important; }
+      .footer-grid { display: grid !important; grid-template-columns: repeat(3,1fr) !important; height: 34px !important; flex-shrink: 0 !important; background: #0c0f1a !important; }
+      .footer-grid::before { display: none !important; }
+      .footer-cell { padding: 4px 12px !important; align-items: center !important; border-right-color: #1a2035 !important; }
+      .footer-label { font-size: 5pt !important; }
+      .footer-val { font-size: 13pt !important; text-shadow: none !important; -webkit-text-fill-color: #c4a35a !important; }
+      .footer-sub { display: none !important; }
+
+      /* ── Light mode print overrides ── */
+      body.light-mode { background: #ffffff !important; }
+      body.light-mode .masthead { background: #ffffff !important; border-bottom-color: #e0e0e0 !important; }
+      body.light-mode .masthead::before { background: linear-gradient(90deg, transparent 0%, #7a5800 15%, #9a6f00 40%, #b38200 50%, #9a6f00 60%, #7a5800 85%, transparent 100%) !important; }
+      body.light-mode .brand-name { -webkit-text-fill-color: #9a6f00 !important; }
+      body.light-mode .meta-cell input { -webkit-text-fill-color: #0f0f0f !important; }
+      body.light-mode .date-day { -webkit-text-fill-color: #9a6f00 !important; }
+      body.light-mode .sess-head { background: #f7f7f7 !important; }
+      body.light-mode .session-col { background: #ffffff !important; border-right-color: #e0e0e0 !important; }
+      body.light-mode .session-col.has-time .sess-name { -webkit-text-fill-color: #9a6f00 !important; }
+      body.light-mode .sess-time-input { -webkit-text-fill-color: #9a6f00 !important; border-color: rgba(154,111,0,0.3) !important; }
+      body.light-mode .calc-strip { background: #f0f0f0 !important; }
+      body.light-mode .calc-val { -webkit-text-fill-color: #0a0a0a !important; }
+      body.light-mode .calc-val.empty { -webkit-text-fill-color: #cccccc !important; }
+      body.light-mode .calc-unit { -webkit-text-fill-color: #7a5800 !important; }
+      body.light-mode .item-row { background: #ffffff !important; border-bottom-color: #eeeeee !important; }
+      body.light-mode .item-row:nth-child(even) { background: #f8f8f8 !important; }
+      body.light-mode .item-name-label { -webkit-text-fill-color: #0f0f0f !important; }
+      body.light-mode .item-name-mr { -webkit-text-fill-color: #888888 !important; }
+      body.light-mode .item-dur { -webkit-text-fill-color: #9a6f00 !important; }
+      body.light-mode .actual-item-row:nth-child(odd)  { background: #ffffff !important; }
+      body.light-mode .actual-item-row:nth-child(even) { background: #f8f8f8 !important; }
+      body.light-mode .actual-name-input { -webkit-text-fill-color: #0f0f0f !important; }
+      body.light-mode .actual-name-input.customised { -webkit-text-fill-color: #9a6f00 !important; }
+      body.light-mode .commit-input { -webkit-text-fill-color: #9a6f00 !important; }
+      body.light-mode .commit-input.auto-filled { -webkit-text-fill-color: #7a5800 !important; }
+      body.light-mode .footer-grid { background: #f4f4f4 !important; }
+      body.light-mode .footer-cell { border-right-color: #e0e0e0 !important; }
+      body.light-mode .footer-val { -webkit-text-fill-color: #9a6f00 !important; }
+    }
+    /* ═══ MICROSTEPS ═══ */
+    .microsteps-toggle {
+      width: 15px; height: 15px; border-radius: 50%;
+      background: transparent; border: 1px solid var(--ink-rim);
+      color: var(--fog); cursor: pointer; font-size: 11px; line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: var(--transition); padding: 0; flex-shrink: 0;
+      font-family: var(--font-mono); margin-left: 5px;
+    }
+    .microsteps-toggle:hover { border-color: var(--gold-pale); color: var(--gold); background: var(--gold-faint); }
+    .microsteps-toggle.open  { border-color: var(--gold-pale); color: var(--gold); background: var(--gold-faint); }
+    /* Panel sits as a full-width grid row spanning all 4 columns */
+    .microsteps-panel {
+      display: none;
+      grid-column: 1 / -1;
+      background: rgba(196,163,90,0.025);
+      border-top: 1px solid var(--ink-border);
+      margin: 0 -22px;
+      width: calc(100% + 44px);
+    }
+    .microsteps-panel.open { display: block; }
+    .ms-row {
+      display: flex; align-items: baseline; gap: 8px;
+      padding: 5px 22px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      transition: background 0.12s;
+    }
+    .ms-row:last-child { border-bottom: none; }
+    .ms-row:hover { background: rgba(196,163,90,0.04); }
+    .ms-dot {
+      width: 3px; height: 3px; border-radius: 50%;
+      background: var(--gold-pale); flex-shrink: 0; margin-top: 6px;
+    }
+    .ms-name { flex: 1; font-family: var(--font-mono); font-size: 10.5px; line-height: 1.55; color: var(--smoke); letter-spacing: 0.1px; }
+    .ms-dur  { font-family: var(--font-mono); font-size: 9px; color: var(--gold-pale); white-space: nowrap; letter-spacing: 0.5px; }
+    body.light-mode .microsteps-panel { background: rgba(0,0,0,0.018); border-top-color: #e4e4e4; }
+    body.light-mode .ms-row:hover     { background: rgba(0,0,0,0.025); }
+    body.light-mode .ms-name          { color: #1a1a1a; }
+    body.light-mode .ms-dur           { color: var(--gold-pale); }
+    @media print { .microsteps-toggle, .microsteps-panel { display: none !important; } }
+
+    /* ═══ MICROSTEP EDIT MODE ═══ */
+    .ms-edit-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 5px 12px 4px;
+      border-bottom: 1px solid var(--ink-border);
+    }
+    .ms-edit-header-lbl {
+      font-family: var(--font-mono); font-size: 5.5px; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--gold-pale);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .ms-edit-header-lbl::before { content: ''; display: block; width: 10px; height: 1px; background: var(--gold-pale); }
+    .ms-edit-session-note {
+      font-family: var(--font-mono); font-size: 5px; color: var(--fog);
+      letter-spacing: 1px; text-transform: uppercase;
+    }
+    .ms-edit-rows { display: flex; flex-direction: column; gap: 0; }
+    .ms-edit-row {
+      display: flex; align-items: center; gap: 5px;
+      padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.035);
+    }
+    .ms-edit-idx {
+      font-family: var(--font-mono); font-size: 7px; color: var(--ink-dim);
+      flex-shrink: 0; min-width: 14px; text-align: right;
+    }
+    .ms-edit-name {
+      flex: 1; min-width: 0;
+      background: rgba(255,255,255,0.04); border: 1px solid var(--ink-rim);
+      border-radius: var(--radius-xs); padding: 4px 7px;
+      font-family: var(--font-mono); font-size: 9px; color: var(--smoke);
+      outline: none; transition: var(--transition);
+    }
+    .ms-edit-name:focus { border-color: var(--smoke); background: rgba(255,255,255,0.07); color: var(--white); }
+    .ms-edit-dur {
+      width: 54px; flex-shrink: 0;
+      background: rgba(196,163,90,0.06); border: 1px solid var(--gold-rim);
+      border-radius: var(--radius-xs); padding: 4px 5px;
+      font-family: var(--font-mono); font-size: 9px; color: var(--gold-pale);
+      outline: none; text-align: center; transition: var(--transition);
+    }
+    .ms-edit-dur:focus { border-color: var(--gold-pale); }
+    .ms-edit-del {
+      width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+      background: transparent; border: 1px solid var(--ink-rim);
+      color: var(--fog); cursor: pointer; font-size: 10px;
+      display: flex; align-items: center; justify-content: center;
+      transition: var(--transition); padding: 0; line-height: 1;
+    }
+    .ms-edit-del:hover { border-color: #e05555; color: #e05555; background: rgba(224,85,85,0.08); }
+    .ms-edit-footer { display: flex; flex-direction: column; gap: 4px; padding-top: 6px; }
+    .ms-edit-add {
+      font-family: var(--font-mono); font-size: 7px; letter-spacing: 2px; text-transform: uppercase;
+      padding: 6px; border-radius: var(--radius-xs);
+      border: 1px dashed var(--ink-rim); background: transparent; color: var(--fog);
+      cursor: pointer; transition: var(--transition); width: 100%;
+    }
+    .ms-edit-add:hover { border-color: var(--gold-pale); color: var(--gold); background: var(--gold-faint); }
+    .ms-edit-save {
+      font-family: var(--font-mono); font-size: 7px; letter-spacing: 2px; text-transform: uppercase;
+      padding: 7px; border-radius: var(--radius-xs);
+      background: linear-gradient(135deg, var(--gold-deep), var(--gold));
+      border: 1px solid var(--gold); color: var(--ink);
+      cursor: pointer; transition: var(--transition); font-weight: 500; width: 100%;
+    }
+    .ms-edit-save:hover { background: linear-gradient(135deg, var(--gold), var(--gold-bright)); }
+    .ms-edit-cancel {
+      font-family: var(--font-mono); font-size: 7px; letter-spacing: 2px; text-transform: uppercase;
+      padding: 5px; border-radius: var(--radius-xs);
+      border: 1px solid var(--ink-border); background: transparent; color: var(--fog);
+      cursor: pointer; transition: var(--transition); width: 100%;
+    }
+    .ms-edit-cancel:hover { background: var(--ink-hover); color: var(--mist); }
+    /* Edit button on exec panel */
+    .ms-exec-edit-btn {
+      font-family: var(--font-mono); font-size: 6.5px; letter-spacing: 2px; text-transform: uppercase;
+      padding: 5px 8px; border-radius: var(--radius-xs);
+      border: 1px solid var(--ink-rim); background: transparent; color: var(--fog);
+      cursor: pointer; transition: var(--transition); flex-shrink: 0;
+    }
+    .ms-exec-edit-btn:hover { border-color: var(--gold-pale); color: var(--gold); background: var(--gold-faint); }
+    /* Planned panel edit */
+    .ms-panel-top {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 5px 22px 3px;
+    }
+    .ms-panel-top-lbl {
+      font-family: var(--font-mono); font-size: 5.5px; letter-spacing: 4px; text-transform: uppercase;
+      color: var(--gold-pale); display: flex; align-items: center; gap: 6px;
+    }
+    .ms-panel-top-lbl::before { content: ''; display: block; width: 10px; height: 1px; background: var(--gold-pale); opacity: 0.6; }
+    .ms-panel-edit-btn {
+      font-family: var(--font-mono); font-size: 5.5px; letter-spacing: 2px; text-transform: uppercase;
+      padding: 3px 7px; border-radius: var(--radius-xs);
+      border: 1px solid var(--ink-rim); background: transparent; color: var(--fog);
+      cursor: pointer; transition: var(--transition);
+    }
+    .ms-panel-edit-btn:hover { border-color: var(--gold-pale); color: var(--gold); background: var(--gold-faint); }
+    .ms-panel-edit-btn.active { border-color: var(--gold-pale); color: var(--gold); background: var(--gold-faint); }
+    .ms-panel-body { padding: 0 22px 8px; }
+    .ms-session-tag {
+      font-family: var(--font-mono); font-size: 5px; color: var(--t-green);
+      letter-spacing: 2px; text-transform: uppercase;
+      padding: 1px 5px; border: 1px solid var(--t-green-dim);
+      border-radius: 2px; background: var(--t-green-dim);
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .ms-session-tag::before { content: '◆'; font-size: 5px; }
+    body.light-mode .ms-edit-name { background: rgba(0,0,0,0.03); border-color: #d0d0d0; color: #111; }
+    body.light-mode .ms-edit-dur  { background: rgba(154,111,0,0.05); border-color: rgba(154,111,0,0.25); }
+    body.light-mode .ms-edit-name:focus { background: rgba(0,0,0,0.06); color: #000; }
+    body.light-mode .ms-panel-edit-btn { border-color: #d8d8d8; color: #888; }
+    body.light-mode .ms-session-tag { color: var(--t-green); border-color: rgba(30,122,62,0.3); background: rgba(30,122,62,0.06); }
+
+    /* ═══ VOICE INPUT ═══ */
+    .voice-btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 22px; height: 22px; border-radius: 50%;
+      background: transparent; border: 1px solid var(--ink-rim);
+      color: var(--fog); cursor: pointer; flex-shrink: 0;
+      transition: var(--transition); padding: 0; margin-left: 4px;
+    }
+    .voice-btn:hover { border-color: var(--gold-pale); color: var(--gold); background: var(--gold-faint); }
+    .voice-btn.listening {
+      border-color: #e05555; color: #e05555; background: rgba(224,85,85,0.10);
+      animation: voicePulse 1s ease-in-out infinite;
+    }
+    .voice-btn svg { width: 10px; height: 10px; }
+    @keyframes voicePulse { 0%,100%{box-shadow:0 0 0 0 rgba(224,85,85,0.35)} 50%{box-shadow:0 0 0 5px rgba(224,85,85,0)} }
+    .voice-unsupported { display: none !important; }
+    /* Inline voice wrapper for meta inputs */
+    .meta-cell-inner { display: flex; align-items: center; gap: 0; }
+    .meta-cell-inner input { flex: 1; }
+    /* Inline voice for actual-name-input */
+    .actual-name-wrap { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; }
+    .actual-name-wrap .actual-name-input { flex: 1; min-width: 0; }
+    @media print { .voice-btn { display: none !important; } }
+
+    /* ═══ VOICE TOAST ═══ */
+    #voiceToast {
+      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(12px);
+      z-index: 3000; pointer-events: none;
+      background: var(--ink-card); border: 1px solid var(--ink-rim);
+      border-radius: var(--radius-sm); padding: 9px 18px;
+      font-family: var(--font-mono); font-size: 9px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--smoke);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+      opacity: 0; transition: opacity 0.18s ease, transform 0.18s ease;
+      white-space: nowrap;
+    }
+    #voiceToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    #voiceToast.toast-err  { border-color: #e05555; color: #e05555; }
+    #voiceToast.toast-info { border-color: var(--gold-rim); color: var(--gold-pale); }
+    #voiceToast.toast-ok   { border-color: rgba(109,201,138,0.4); color: var(--t-green); }
+  </style>
+</head>
+<body>
+
+<!-- iOS Safari install hint (hidden by default, shown via JS on iOS only) -->
+<div id="iosInstallHint" style="display:none; position:fixed; bottom:28px;
+  left:50%; transform:translateX(-50%); z-index:9999;
+  background:#0a0d18; border:1px solid rgba(196,163,90,0.35);
+  border-radius:10px; padding:14px 20px; max-width:300px; width:90%;
+  box-shadow:0 8px 32px rgba(0,0,0,0.5);
+  font-family:'DM Mono',monospace; font-size:12px;
+  color:#dad5cb; text-align:center; line-height:1.7;
+  flex-direction:column; gap:8px; align-items:center;">
+  <div>Tap <strong style="color:#c4a35a">Share&nbsp;↑</strong> then
+  <strong style="color:#c4a35a">Add to Home Screen</strong> to install Practitioner.</div>
+  <span onclick="document.getElementById('iosInstallHint').style.display='none'"
+    style="color:#5a5650; cursor:pointer; font-size:11px; letter-spacing:0.5px;">
+    DISMISS
+  </span>
+</div>
+
+<div id="voiceToast"></div>
+
+<div class="confirm-overlay" id="confirmOverlay" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="confirm-box">
+    <div class="confirm-title" id="confirmTitle">Confirm</div>
+    <div class="confirm-msg"   id="confirmMsg">Are you sure?</div>
+    <div class="confirm-btns">
+      <button id="confirmCancel">Cancel</button>
+      <button class="confirm-ok" id="confirmOk">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="install-bar" id="installBar">
+  <div style="display:flex;align-items:center;gap:10px">
+    <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg" style="border-radius:6px;flex-shrink:0;background:#07090f">
+      <text x="6" y="21" font-family="Georgia,serif" font-size="22" font-weight="700" fill="#c4a35a">P</text>
+    </svg>
+    <span>Add Practitioner to Home Screen</span>
+  </div>
+  <button id="btnInstallBar" onclick="triggerInstall()">Install</button>
+</div>
+
+<header class="masthead">
+  <div class="masthead-top">
+    <div class="masthead-brand">
+      <div class="brand-eyebrow">Daily Discipline System</div>
+      <div class="brand-name">PRACTITIONER</div>
+    </div>
+    <div class="meta-cell">
+      <div class="meta-cell-label">Practitioner</div>
+      <div class="meta-cell-inner">
+        <input type="text" id="mPractitioner" placeholder="Your name" autocomplete="name">
+        <button class="voice-btn" id="voicePractitioner" title="Voice input" onclick="startVoice('mPractitioner',this)" aria-label="Voice input for practitioner name">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="meta-cell">
+      <div class="meta-cell-label">Focus / Goal</div>
+      <div class="meta-cell-inner">
+        <input type="text" id="mFocus" placeholder="Your intention for today" autocomplete="off">
+        <button class="voice-btn" id="voiceFocus" title="Voice input" onclick="startVoice('mFocus',this)" aria-label="Voice input for focus goal">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="masthead-date" id="mDate"></div>
+  </div>
+  <div class="masthead-quote">Discipline is the bridge between goals and accomplishment.</div>
+</header>
+
+<div class="sessions-wrap" id="sessionsWrap"></div>
+
+<div class="footer-grid">
+  <div class="footer-cell">
+    <div class="footer-label">Total Planned</div>
+    <div class="footer-val" id="ftTotal">—</div>
+    <div class="footer-sub">H &nbsp; M &nbsp; across scheduled sessions</div>
+  </div>
+  <div class="footer-cell">
+    <div class="footer-label">Total Actual</div>
+    <div class="footer-val" id="ftActual">—</div>
+    <div class="footer-sub">H &nbsp; M</div>
+  </div>
+  <div class="footer-cell">
+    <div class="footer-label">Sessions Scheduled</div>
+    <div class="footer-val" id="ftSessions">0 / 3</div>
+    <div class="footer-sub">sessions with start time entered</div>
+  </div>
+</div>
+
+<div class="action-strip">
+  <div class="colophon">Practitioner — Three Sessions · Six Items Each · Daily Excellence</div>
+  <div class="action-btns">
+    <button class="btn" onclick="openGuide()" title="User Guide — वापरकर्ता मार्गदर्शिका">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:5px;vertical-align:-1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>Guide
+    </button>
+    <button class="btn-theme" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light mode">
+      <svg id="themeIcon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+      </svg>
+      <span id="themeLabel">Light</span>
+    </button>
+    <button id="btnInstall" class="btn btn-fill" style="display:none" onclick="triggerInstall()">⊕ Install App</button>
+    <button class="btn" onclick="askResetTimes()">Reset Times</button>
+    <button class="btn" onclick="askResetAll()">Clear All</button>
+    <button class="btn btn-fill" onclick="printPDF()">Save Day as PDF</button>
+  </div>
+</div>
+
+<!-- ══════════════════ USER GUIDE MODAL ══════════════════ -->
+<div class="guide-overlay" id="guideOverlay" role="dialog" aria-modal="true" aria-label="User Guide">
+  <div class="guide-box">
+    <div class="guide-header">
+      <div class="guide-header-left">
+        <div class="guide-icon">📖</div>
+        <div>
+          <div class="guide-title">User Guide</div>
+          <div class="guide-subtitle">वापरकर्ता मार्गदर्शिका</div>
+        </div>
+      </div>
+      <button class="guide-close" onclick="closeGuide()" aria-label="Close guide">✕</button>
+    </div>
+    <div class="guide-progress-bar"><div class="guide-progress-fill" id="guideProgressFill"></div></div>
+    <div class="guide-body" id="guideBody"></div>
+    <div class="guide-footer">
+      <div class="guide-dots" id="guideDots"></div>
+      <div class="guide-nav">
+        <button class="guide-btn" id="guidePrev" onclick="guideNav(-1)">← Prev</button>
+        <button class="guide-btn g-primary" id="guideNext" onclick="guideNav(1)">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ════════════════════════════ MICROSTEPS DATA ═══════════════════════════════ */
+const MICROSTEPS = {
+  morning: [
+    // 01 Meditation
+    [['Aanapan / Breath Awareness — आनापान','10 min'],['Vipassana / Insight Meditation — विपश्यना','60 min'],['Metta / Loving-Kindness — मेत्ता','5 min']],
+    // 02 Running
+    [['Warm-Up — Surya Namaskar + Joint Circles','5 min'],['Running — Zone 2 Cardio (Easy 3K–5K)','15 min'],['Strides — 2–4 × 100m','5 min'],['Cool Down & Stretch — Pigeon, Hamstring, Shavasana','5 min']],
+    // 03 Journal
+    [['Journal / Write Empty Mind — जर्नल','5 min'],['Affirmations — प्रतिज्ञापने','3 min'],['Chief Aim Visualization — मुख्य ध्येय दृश्यीकरण','5 min'],['Writing Practice — लेखन सराव','12 min'],['Gratitude Journal — कृतज्ञता जर्नल','5 min']],
+    // 04 Reading
+    [['Philosophy Study — तत्त्वज्ञान अभ्यास','15 min'],['Gitapath — गीतापाठ','10 min'],['Character Analysis — पात्र विश्लेषण','5 min'],['Script / Artwork Work — स्क्रिप्ट कार्य','10 min'],['Script Reading — स्क्रिप्ट वाचन','5 min']],
+    // 05 Pranayam
+    [['Kapalbhati — Skull-Shining Breath','10 min'],['Anulom Vilom — Alternate Nostril','10 min'],['Bhramari — Humming Bee Breath','7 min'],['Savasana / Silent Sit','3 min']],
+    // 06 Surya Namaskar
+    [['Joint Circles — Neck to Ankles — सांधे गोलाकार','5 min'],['Surya Namaskar A — 5 rounds','10 min'],['Surya Namaskar B — 5 rounds','10 min'],['Shadow Boxing — Light Chain Flow','10 min'],['Wrist + Shoulder + Thoracic Mobility','10 min'],['Cat-Cow + Hip Circles + Spinal Flow','10 min'],["Child's Pose + Balasana — Final Rest",'5 min']]
+  ],
+  afternoon: [
+    // 07 Breakfast
+    [['Japa — जप','5 min'],['Trataka — त्राटक','7 min'],['Bath — स्नान','10 min'],['Cooking / Manaspuja — स्वयंपाक + मानसपूजा','10 min'],['Breakfast + Sun Bath — न्याहारी + सूर्यस्नान','15 min']],
+    // 08 Meetings
+    [['Mon — Script / Pitch Development','—'],['Tue — Client Work Delivery Execution','—'],['Wed — Systems / SOPs / Automation','—'],['Thu — Marketing / Social Batch Content','—'],['Fri — Review & Organize / Weekly Progress','—'],['90-min Focus Block + 10-min Rest / Admin','30 min']],
+    // 09 Calls
+    [['Mon — Sales Outreach — विक्री संपर्क','—'],['Tue/Thu — Hollywood Outreach (1 Agent + 1 CDG)','—'],['Wed — Community Engagement — कार्यक्रम','—'],['Fri — Relationship Maintenance — कुटुंब / मित्र','—'],['Follow-up Tasks + Audiobook','10 min'],['90-min Focus Block — Networking','30 min']],
+    // 10 Record
+    [['Profile Development — प्रोफाइल विकास','5 min'],['Diction Exercises — उच्चार व्यायाम','5 min'],['Visualization Practice — दृश्यीकरण सराव','5 min'],['Improvisation — उत्स्फूर्त सादरीकरण','5 min'],['Ad Practice + Script Reading — जाहिरात सराव','5 min'],['Nav Ras — नऊ रस (9 Emotional States)','5 min'],['On-Camera Self-Tape (SVK+) — ऑन-कॅमेरा','20 min']],
+    // 11 Lunch
+    [['Wuzu — वजू','3 min'],['Metta Meditation — मेत्ता ध्यान','5 min'],['Cooking / Lunch Prep — दुपारचा स्वयंपाक','15 min'],['Lunch — दुपारचे जेवण','15 min'],['Walk — चालणे','10 min'],['Power Nap — पॉवर नॅप','20 min']],
+    // 12 Trade
+    [['Mon — Finance Review / Portfolio Analysis','—'],['Tue — Investment Research / Asset Evaluation','—'],['Wed — Operations — P&L Deep Dive','—'],['Thu — Growth Metrics — KPI / Conversion Tracking','—'],['Fri — Finance & Strategy — Portfolio Optimization','—'],['90-min Focus Block — Finance','75 min']]
+  ],
+  evening: [
+    // 13 Review
+    [['Daily Diary Entry — दैनिक डायरी नोंद','10 min'],['Improvements / Lessons Learned — सुधारणा','5 min'],['Next Day Goal Setting — पुढील दिवसाचे ध्येय','5 min'],['Next Day Planning — पुढील दिवसाचे नियोजन','10 min']],
+    // 14 Gym/Cardio
+    [['Warm-Up — Jog / Rowing / Jump Rope + Band Activation','10 min'],['Main Lift — Push / Pull / Legs (MWF rotation)','45 min'],['Cool Down — Stretch + Foam Roll + Recovery Breath','10 min'],['TTS (Tue/Thu) — Running 60 min (Warm + Run + Strides + CD)','60 min']],
+    // 15 Meditation
+    [['Aanapan — आनापान','10 min'],['Vipassana — विपश्यना','60 min'],['Metta / Loving-Kindness — मेत्ता','5 min']],
+    // 16 Dinner
+    [['Wuzu — वजू','3 min'],['Metta Meditation — मेत्ता ध्यान','5 min'],['Cooking / Dinner Prep — स्वयंपाक','15 min'],['Dinner — रात्रीचे जेवण','15 min'],['Walk — चालणे','12 min'],['90-Day Goal Review (Sunday) — ९०-दिवस ध्येय','60 min ☉']],
+    // 17 Practice
+    [['Voice Work — Projection · Melody · Diction','10 min'],['Physical Practice — Movement · Technique','10 min'],['Emotional Practice — Intent · Presence · Expression','10 min'],['Audition Preparation — ऑडिशन तयारी','—'],['Scene Study / Rehearsal (SVK+)','—'],['Script / Art Reading & Writing','—']],
+    // 18 Diary
+    [['Trataka — त्राटक','7 min'],['Affirmations + Visualization — दृश्यीकरण','5 min'],['Writing Practice — लेखन सराव','5 min'],['Gratitude Journal — कृतज्ञता जर्नल','5 min'],['Gitapath / Yogavasistha / Dasbodh','10 min'],['Sleep by 21:00 — झोपणे','—']]
+  ]
+};
+
+/* ══════════════════ SESSION-ONLY MICROSTEP OVERRIDES ════════════════════════
+   Stored in memory only — resets on page refresh. Keys: "sessId:itemOrigIdx"  */
+const SESSION_STEPS = {};
+
+function getEffectiveSteps(sessId, itemOrigIdx) {
+  const key = sessId + ':' + itemOrigIdx;
+  return Object.prototype.hasOwnProperty.call(SESSION_STEPS, key)
+    ? SESSION_STEPS[key]
+    : getMicrosteps(sessId, itemOrigIdx);
+}
+
+function setSessionSteps(sessId, itemOrigIdx, steps) {
+  SESSION_STEPS[sessId + ':' + itemOrigIdx] = steps;
+}
+
+/* ── Microstep duration scaling ──────────────────────────────────────────────
+   When start time shifts the commit time, scale each microstep duration
+   proportionally so they still add up to (roughly) the new commit time.
+
+   ratio = newCommitMins / defaultCommitMins
+   Only numeric "N min" durations are scaled; "—" (open-ended) stays as-is.
+   Result is rounded to nearest whole minute (minimum 1 min).            */
+function scaleStepDur(dur, ratio) {
+  if (!dur || dur === '—' || ratio === 1) return dur;
+  const m = dur.match(/^(\d+(?:\.\d+)?)\s*min(.*)/i);
+  if (!m) return dur;
+  const scaled = Math.max(1, Math.round(parseFloat(m[1]) * ratio));
+  const suffix = m[2] || '';  // preserves e.g. ' ☉' or any trailing annotation
+  return scaled + ' min' + suffix;
+}
+
+/* Returns steps with durations scaled to the current commit time.
+   Falls back to unscaled if no start time / calc is unavailable.       */
+function getScaledSteps(sessId, itemOrigIdx) {
+  const steps = getEffectiveSteps(sessId, itemOrigIdx);
+  if (!steps.length) return steps;
+  const sess  = SESSIONS.find(s => s.id === sessId);
+  if (!sess) return steps;
+  const sS    = S.sessions[sessId];
+  const c     = calcSession(sess, sS.startTime);
+  // default commit for this item
+  const defaultCommit = sess.defaultActuals[itemOrigIdx];
+  // current commit (auto or locked)
+  const currentCommit = resolvedCommit(sess, sS, c, itemOrigIdx);
+  if (!defaultCommit || defaultCommit === currentCommit) return steps;
+  const ratio = currentCommit / defaultCommit;
+  return steps.map(([name, dur]) => [name, scaleStepDur(dur, ratio)]);
+}
+
+function resetSessionSteps(sessId, itemOrigIdx) {
+  delete SESSION_STEPS[sessId + ':' + itemOrigIdx];
+}
+
+/* ═══════════════════════════════════ DATA ═══════════════════════════════════ */
+const SESSIONS = [
+  { id: 'morning',   label: 'I',   name: 'Morning',   window: '03:00 AM — 09:00 AM',
+    items:   ['Meditation','Running','Journal','Reading','Pranayam','Surya Namaskar'],
+    itemsMr: ['ध्यान','धावणे','डायरी','वाचन','प्राणायाम','सूर्य नमस्कार'],
+    defaultActuals: [75, 30, 30, 45, 30, 60], endH: 9,  endM: 0 },
+  { id: 'afternoon', label: 'II',  name: 'Afternoon', window: '09:00 AM — 03:00 PM',
+    items:   ['Breakfast','Meetings','Calls','Record','Lunch','Trade'],
+    itemsMr: ['नाश्ता','बैठका','कॉल्स','रेकॉर्ड','जेवण','व्यापार'],
+    defaultActuals: [30, 30, 30, 45, 60, 75], endH: 15, endM: 0 },
+  { id: 'evening',   label: 'III', name: 'Evening',   window: '03:00 PM — 09:00 PM',
+    items:   ['Review','Gym/Cardio','Meditation','Dinner','Practice','Diary'],
+    itemsMr: ['आढावा','व्यायाम','ध्यान','रात्रीचे जेवण','सराव','डायरी'],
+    defaultActuals: [30, 60, 75, 45, 30, 30], endH: 21, endM: 0 }
+];
+const STORAGE_KEY = 'practitioner_v7';
+const APP_VERSION = '2026.04';   /* bump this string on every deploy to bust the SW cache */
+
+/* ═══════════════════════ 3-2-1 PREP TASKS (Marathi) ════════════════════════ */
+const PREP_TASKS = {
+  morning: [
+    ['रात्रभर तांब्याच्या भांड्यातील पाणी प्या','अंथरूण आवरा + शौच + नेत्रस्नान','वजू — स्थिरतेत प्रवेशाचा विधी'],
+    ['कोमट पाणी (१५०मिली) & शंखप्रक्षालन (४ आसने)','शौच (पूर्ण) — धावण्यापूर्वी शरीर मोकळे करा','गुदमसाज & वजू — श्रोणी सक्रियता + विधी शुद्धता'],
+    ['टेबलावर बसा, वही कोऱ्या पानावर उघडा','उदबत्ती लावा किंवा खिडकी उघडा','३ दीर्घ श्वास + एक लेखन हेतू मोठ्याने सांगा'],
+    ['पुस्तक निवडा, नैसर्गिक प्रकाशात बसा','ताठ बसा, फोन बंद करा — शरीर सांगते: लक्ष द्या','३ श्वास + एक प्रश्न ठरवा जो हे पुस्तक उत्तर देईल'],
+    ['लघवी करा (हलका शौच) — प्राणायामात व्यत्यय नको','चटईवर बसा, पाठ ताठ — वायुमार्ग मोकळा','वजू + जीभ साफ करा — प्राणिक प्रवेश'],
+    ['चटई पसरवा, पूर्वेकडे तोंड करा — सौरऊर्जेकडे उन्मुख','मान, मनगट, घोटे सैल करा (६० सेकंद)','गायत्री संकल्प (मनात किंवा हळूच) & वजू']
+  ],
+  afternoon: [
+    ['वजू & हात धुवा — जेवणापूर्वी विधी शुद्धता','शांत, स्वच्छ जागी ताट मांडा — घाई नाही','बिस्मिल्लाह / कृतज्ञता प्रार्थना — सजगतेने खा'],
+    ['अजेंडा व एक अनिवार्य निकाल तपासा — तयार व्हा','टेबल आवरा, फोन बंद करा — उपस्थिती, गोंगाट नाही','३ दीर्घ श्वास + हळूच सांगा: "मी येथे ___ साठी आहे"'],
+    ['कॉलचा उद्देश + एक हवा असलेला निकाल तपासा','उठा + खांदे मागे घ्या — आवाजाचे शरीर उघडा','३ श्वास: हेतू नाव द्या, स्वर ठरवा, मग फोन लावा'],
+    ['कॅमेरा/फोन लावा, फ्रेम & प्रकाश तपासा — योग्य दिसा','आवाज गुणगुणवा (५ स्वर, खालून वर) — यंत्र जागे करा','१० सेकंद शांतता + रेकॉर्डपूर्वी दृश्याचा हेतू ठरवा'],
+    ['वजू & हात धुवा — दुपारचा शुद्धता पुनर्जन्म','शांतपणे बसा, ताट मांडा, फोन बंद करा','बिस्मिल्लाह / कृतज्ञता — पवित्र पोषण, केवळ उपभोग नाही'],
+    ['बाजाराच्या नोटा, महत्त्वाचे स्तर & दैनिक योजना तपासा','कामाची जागा स्वच्छ करा: समोर फक्त चार्ट, वही, पेन','पोझिशन उघडण्यापूर्वी जोखीम लिहा + ३ श्वास']
+  ],
+  evening: [
+    ['ट्रॅकर / जर्नल उघडा — यंत्र हाताने धरा','सकाळचा संकल्प पुन्हा वाचा — पहाटे काय घोषित केले?','३ दीर्घ श्वास — करण्यातून साक्षी होण्याकडे वळा'],
+    ['प्रशिक्षणाचे कपडे घाला — पोशाख म्हणजे पात्राचा बदल','सांधे मोकळे करा: मान → खांदे → कमर → घोटे (९० सेकंद)','वजू + एक प्रशिक्षण हेतू ठरवा — हा सत्र काय घडवतो?'],
+    ['दिवे मंद करा, फोन बंद करा — दिवसाचा संवेदी भार कमी करा','वजू + चटईवर बसा — संध्याकाळची शुद्धता संक्रमण','डोळे मऊ ठेवा, ३ लांब हळुवार श्वास सोडा — दुपार विरघळू द्या'],
+    ['वजू & हात धुवा — दिवसाच्या अखेरची शुद्धता, घाई नाही','शांतपणे ताट मांडा, शक्य असल्यास दिवा लावा — रात्र मंद करा','बिस्मिल्लाह / कृतज्ञता + स्क्रीन नाही — पूर्ण उपस्थितीने जेवण'],
+    ['जागा साफ करा — हा मजला तुमचा रंगमंच आहे, आदर करा','स्क्रिप्ट / दृश्य कार्ड समोर ठेवा — साहित्य तयार','शारीरिक झटकणे (३० सेकंद) + ३ स्वर गुणगुणवा — शरीर व आवाज जिवंत'],
+    ['दिवे मंद करा, डायरी कोऱ्या पानावर उघडा','३० सेकंद शांतता, फोन नाही — दिवस आत स्थिरावू द्या','३ श्वास + मोठ्याने विचारा: "आज मी खरोखर काय शिकलो?"']
+  ]
+};
+
+function emptyState() {
+  const state = { name: '', focus: '', sessions: {} };
+  SESSIONS.forEach(sess => {
+    state.sessions[sess.id] = {
+      startTime: '',
+      actualCommit:    ['','','','','',''],   // '' = auto-computed; only locked items store a value
+      commitLocked:    [false,false,false,false,false,false],
+      actualItemName:  [...sess.items]
+    };
+  });
+  return state;
+}
+
+function loadState() {
+  const keys = [STORAGE_KEY, 'practitioner_v6', 'practitioner_v5', 'practitioner_v4', 'practitioner_v3'];
+  for (const key of keys) {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.sessions && parsed.sessions.morning) {
+        ['morning','afternoon','evening'].forEach((k, ki) => {
+          const sess = SESSIONS[ki];
+          // Guard against missing session keys from old/partial storage
+          if (!parsed.sessions[k]) parsed.sessions[k] = {
+            startTime: '', actualCommit: ['','','','','',''],
+            commitLocked: [false,false,false,false,false,false],
+            actualItemName: [...sess.items]
+          };
+          if (!parsed.sessions[k].commitLocked) parsed.sessions[k].commitLocked = [false,false,false,false,false,false];
+          if (!parsed.sessions[k].actualCommit)  parsed.sessions[k].actualCommit  = ['','','','','',''];
+          // Ensure arrays are exactly length 6
+          while (parsed.sessions[k].commitLocked.length < 6) parsed.sessions[k].commitLocked.push(false);
+          while (parsed.sessions[k].actualCommit.length  < 6) parsed.sessions[k].actualCommit.push('');
+          // Clear any unlocked (auto-filled) stored values — they will be recomputed at render time
+          // so stale values from old storage versions never show wrong numbers
+          parsed.sessions[k].commitLocked.forEach((locked, i) => {
+            if (!locked) parsed.sessions[k].actualCommit[i] = '';
+          });
+          if (!parsed.sessions[k].actualItemName) parsed.sessions[k].actualItemName = [...sess.items];
+          // Ensure actualItemName length matches
+          while (parsed.sessions[k].actualItemName.length < 6) {
+            parsed.sessions[k].actualItemName.push(sess.items[parsed.sessions[k].actualItemName.length] || '');
+          }
+          delete parsed.sessions[k].planned;
+          delete parsed.sessions[k].actual;
+        });
+        // Migrate: remove stale version keys so storage stays clean
+        if (key !== STORAGE_KEY) {
+          try { localStorage.removeItem(key); } catch(e) {}
+        }
+        return parsed;
+      }
+    } catch (e) {}
+  }
+  return emptyState();
+}
+
+let S = loadState();
+
+function persist() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch (e) {}
+}
+
+/* ═══════════════════════════════════ CALC ═══════════════════════════════════ */
+
+/* Default prep = round((sessionDefaultWindow / 6) / 4)
+   Parse the canonical window start time from sess.window string e.g. "03:00 AM — 09:00 AM"
+   Morning 360min / 6 = 60, / 4 = 15 → defaultPrep = 15 */
+function defaultPrep(sess) {
+  const m = sess.window.match(/(\d+):(\d+)\s*(AM|PM)/);
+  if (!m) return 15;
+  let h = parseInt(m[1], 10), mn = parseInt(m[2], 10);
+  const ap = m[3];
+  if (ap === 'PM' && h !== 12) h += 12;
+  if (ap === 'AM' && h === 12) h = 0;
+  const defaultTotal = (sess.endH * 60 + sess.endM) - (h * 60 + mn);
+  const defPerItem = defaultTotal / 6;
+  return Math.round(defPerItem / 4);
+}
+
+/* Multiplier for each item = defaultActuals[i] / defaultPrep(sess)
+   e.g. Meditation 75 / 15 = 5×, Running 30 / 15 = 2× */
+function itemMultipliers(sess) {
+  const dp = defaultPrep(sess);
+  return sess.defaultActuals.map(d => d / dp);
+}
+
+/* Auto-filled commit value for item i: scales with prep when start time is set,
+   falls back to defaultActuals when no start time.
+   Rule: practice = prep × (defaultActuals[i] / defaultPrep)  */
+function autoCommitVal(sess, c, i) {
+  if (!c || c.prep <= 0) return sess.defaultActuals[i];
+  const mults = itemMultipliers(sess);
+  return Math.max(1, Math.round(c.prep * mults[i]));
+}
+
+/* Resolved commit for item i — locked value if user set one, else auto-computed */
+function resolvedCommit(sess, sS, c, i) {
+  const locked = (sS.commitLocked||[])[i];
+  const stored = (sS.actualCommit||[])[i];
+  if (locked && stored !== '' && stored !== undefined && stored !== null) {
+    const v = parseInt(stored, 10);
+    if (!isNaN(v) && v > 0) return v;
+  }
+  return autoCommitVal(sess, c, i);
+}
+
+/* BUG FIX: function declaration was missing — body was orphaned causing ReferenceError on calcSession calls */
+function calcSession(sess, t) {
+  if (!t) return null;
+  const parts = t.split(':');
+  if (parts.length < 2) return null;
+  const sh = parseInt(parts[0], 10), sm = parseInt(parts[1], 10);
+  if (isNaN(sh) || isNaN(sm)) return null;
+  const start = sh * 60 + sm;
+  const end   = sess.endH * 60 + sess.endM;
+  const total = end - start;
+  if (total <= 0) return null;
+  const perItem  = total / 6;
+  const prep     = Math.max(1, Math.round(perItem / 4));
+  const practice = Math.max(1, Math.round(perItem - prep));
+  // Per-item practices scaled by each item's multiplier relative to default prep
+  const mults    = itemMultipliers(sess);
+  const itemPractices = mults.map(m => Math.max(1, Math.round(prep * m)));
+  return { total: Math.round(total), perItem: Math.round(perItem), prep, practice, itemPractices };
+}
+
+function fmtHM(mins) {
+  if (mins === null || mins === undefined) return '—';
+  const h = Math.floor(mins / 60), m = mins % 60;
+  if (h === 0) return `${m}m`;
+  return `${h}h ${m}m`;
+}
+
+function esc(s) {
+  return (s || '')
+    .replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ═══════════════════════════════════ DATE ═══════════════════════════════════ */
+(function() {
+  const d = new Date();
+  document.getElementById('mDate').innerHTML =
+    `<div class="date-day">${String(d.getDate()).padStart(2,'0')}</div>` +
+    `<div class="date-month">${d.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</div>` +
+    `<div class="date-weekday">${d.toLocaleDateString('en-US',{weekday:'long'})}</div>`;
+})();
+
+/* ═══════════════════════════════════ META INPUTS ════════════════════════════ */
+(function() {
+  const p = document.getElementById('mPractitioner');
+  const f = document.getElementById('mFocus');
+  p.value = S.name  || '';
+  f.value = S.focus || '';
+  p.addEventListener('input', e => { S.name  = e.target.value; persist(); });
+  f.addEventListener('input', e => { S.focus = e.target.value; persist(); });
+})();
+
+/* ═══════════════════════════════════ CONFIRM ════════════════════════════════ */
+function showConfirm(title, msg, onOk) {
+  const overlay = document.getElementById('confirmOverlay');
+  document.getElementById('confirmTitle').textContent = title;
+  document.getElementById('confirmMsg').textContent   = msg;
+  overlay.classList.add('show');
+  const ok     = document.getElementById('confirmOk');
+  const cancel = document.getElementById('confirmCancel');
+  function close() {
+    overlay.classList.remove('show');
+    ok.removeEventListener('click', onClickOk);
+    cancel.removeEventListener('click', close);
+    overlay.removeEventListener('click', onBg);
+  }
+  function onClickOk() { close(); onOk(); }
+  function onBg(e) { if (e.target === overlay) close(); }
+  ok.addEventListener('click', onClickOk);
+  cancel.addEventListener('click', close);
+  overlay.addEventListener('click', onBg);
+}
+
+/* ═══════════════════════════════════ RESET ══════════════════════════════════ */
+function stopAllTimers() {
+  SESSIONS.forEach(s => {
+    const ts = TIMER_STATE[s.id];
+    if (ts && ts.iid) clearInterval(ts.iid);
+    TIMER_STATE[s.id] = null;
+  });
+}
+
+function askResetTimes() {
+  showConfirm('Reset Start Times', 'Clear all session start times? Commit data is kept.', () => {
+    stopAllTimers();
+    SESSIONS.forEach(s => { S.sessions[s.id].startTime = ''; });
+    persist(); build();
+  });
+}
+function askResetAll() {
+  showConfirm('Clear All Data', 'Clear name, focus, start times and item names? Committed minutes are kept.', () => {
+    stopAllTimers();
+    // Preserve actualCommit and commitLocked — only wipe start times and custom item names
+    S.name  = '';
+    S.focus = '';
+    SESSIONS.forEach(s => {
+      S.sessions[s.id].startTime      = '';
+      S.sessions[s.id].actualItemName = [...s.items];
+    });
+    document.getElementById('mPractitioner').value = '';
+    document.getElementById('mFocus').value = '';
+    persist(); build();
+  });
+}
+
+/* ════════════════════════ AUDIO & TIMER SYSTEM ══════════════════════════════*/
+let _actx = null;
+function getAudioCtx() {
+  if (!_actx) _actx = new (window.AudioContext || window.webkitAudioContext)();
+  return _actx;
+}
+function unlockAudio() {
+  const ctx = getAudioCtx();
+  if (ctx.state === 'suspended') ctx.resume();
+}
+function _tone(freq, t0, dur, vol) {
+  const ctx = getAudioCtx();
+  const osc = ctx.createOscillator();
+  const g   = ctx.createGain();
+  osc.connect(g); g.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, t0);
+  g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(vol, t0 + 0.012);
+  g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+  osc.start(t0); osc.stop(t0 + dur + 0.06);
+}
+function playGood() {
+  try {
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    [523, 659, 784, 1047].forEach((f, i) => _tone(f, now + i * 0.11, 0.5 - i * 0.06, 0.38));
+  } catch(e) {}
+}
+
+const TIMER_STATE = {};
+
+function timerItems(sessId) {
+  const sess = SESSIONS.find(s => s.id === sessId);
+  const sS   = S.sessions[sessId];
+  const c    = calcSession(sess, sS.startTime);
+  const arr  = [];
+  for (let i = 0; i < 6; i++) {
+    const displayVal = resolvedCommit(sess, sS, c, i);
+    if (displayVal > 0) {
+      const customName = (sS.actualItemName||[])[i] || sess.items[i];
+      arr.push({ name: customName, commit: displayVal, idx: i });
+    }
+  }
+  return arr;
+}
+
+function timerRenderUI(sessId) {
+  const ts    = TIMER_STATE[sessId];
+  const items = timerItems(sessId);
+
+  const elPhase   = document.getElementById('tph-'       + sessId);
+  const elNum     = document.getElementById('tnum-'      + sessId);
+  const elName    = document.getElementById('tname-'     + sessId);
+  const elDigital = document.getElementById('tdigital-'  + sessId);
+  const elPracBar = document.getElementById('tpracbar-'  + sessId);
+  const miniPrac  = document.getElementById('tmini-prac-'+ sessId);
+  const btnStart  = document.getElementById('tbtn-start-'+ sessId);
+  const btnNext   = document.getElementById('tbtn-next-' + sessId);
+  const btnReset  = document.getElementById('tbtn-reset-'+ sessId);
+  if (!elPhase) return;
+
+  const _prepPanel  = document.getElementById('tprep-'     + sessId);
+  const _pracPanel  = document.getElementById('tpracview-' + sessId);
+  const _msPanel    = document.getElementById('tms-'       + sessId);
+
+  const _inPrep = ts && ts.phase === 'prep';
+  const _inMs   = ts && ts.phase === 'microstep';
+  if (_prepPanel) _prepPanel.classList.toggle('active', _inPrep);
+  if (_pracPanel) _pracPanel.style.display = (_inPrep || _inMs) ? 'none' : '';
+  if (_msPanel)   _msPanel.classList.toggle('active', _inMs);
+
+  /* ── Sidebar mini list: shows items; active item shows microstep progress ── */
+  const activeIdx = ts ? ts.itemIdx : -1;
+  const miniHTML = items.length === 0
+    ? '<div class="timer-no-items">No items planned</div>'
+    : items.map((item, i) => {
+        let cls = '';
+        if (ts) {
+          if      (i < activeIdx)   cls = ' t-done';
+          else if (i === activeIdx) cls = ' t-active';
+        }
+        let extra = '';
+        if (ts && i === activeIdx && (ts.phase === 'microstep' || ts.phase === 'practice')) {
+          const steps = getEffectiveSteps(sessId, item.idx);
+          if (steps.length > 0) {
+            const done = (ts.msStepStatus || []).filter(s => s === 'done').length;
+            extra = ' <span style="color:var(--t-green);font-size:7px;">(' + done + '/' + steps.length + ')</span>';
+          }
+        }
+        return '<div class="timer-mini-row' + cls + '">'
+          + '<div class="timer-mini-dot"></div>'
+          + '<div class="timer-mini-text">' + (i+1) + '. ' + esc(item.name) + ' (' + item.commit + 'm)' + extra + '</div>'
+          + '</div>';
+      }).join('');
+
+  if (miniPrac) miniPrac.innerHTML = miniHTML;
+  btnStart.className = 'timer-btn';
+  btnNext.className  = 'timer-btn t-next';
+
+  /* ── IDLE ── */
+  if (!ts) {
+    elPhase.className   = 'timer-phase-badge';
+    elPhase.textContent = 'idle';
+    elNum.textContent   = '—';
+    elName.textContent  = items.length ? 'Press Start to begin execution' : 'Setup session first';
+    elDigital.textContent = items.length > 0 ? String(items[0].commit).padStart(2,'0') + ':00' : '--:--';
+    elPracBar.style.width = '100%';
+    btnStart.classList.add('t-primary');
+    btnStart.textContent = 'Start';
+    btnStart.disabled    = items.length === 0;
+    btnNext.disabled     = true;
+    btnNext.textContent  = 'Next →';
+    btnReset.disabled    = true;
+    return;
+  }
+
+  const { phase, itemIdx, secsLeft } = ts;
+
+  /* ── PREP phase ── */
+  if (phase === 'prep') {
+    const item  = items[itemIdx];
+    const origIdx = item ? item.idx : itemIdx;
+    const tasks = (PREP_TASKS[sessId] || [])[origIdx] || ['—','—','—'];
+    elPhase.className   = 'timer-phase-badge prep';
+    elPhase.textContent = '३ · २ · १';
+    elNum.textContent   = 'Item ' + (itemIdx + 1) + ' of ' + items.length + ' — तयारी';
+    elName.textContent  = item ? item.name : '';
+    elDigital.textContent = item ? String(item.commit).padStart(2,'0') + ':00' : '--:--';
+    elPracBar.style.width = '100%';
+    for (let i = 0; i < 3; i++) {
+      const txtEl = document.getElementById('tprep-' + sessId + '-t' + i);
+      const rowEl = document.getElementById('tprep-' + sessId + '-' + i);
+      if (txtEl) txtEl.textContent = tasks[i];
+      if (rowEl) {
+        const checked   = ts.prepChecked[i];
+        const canUnlock = i === 0 || ts.prepChecked[i - 1];
+        rowEl.classList.toggle('checked',  checked);
+        rowEl.classList.toggle('unlocked', canUnlock || checked);
+      }
+    }
+    const allDone = ts.prepChecked.every(Boolean);
+    const goBtn   = document.getElementById('tprep-' + sessId + '-go');
+    if (goBtn) goBtn.disabled = !allDone;
+    btnStart.classList.add('t-primary');
+    btnStart.textContent = '३ · २ · १';
+    btnStart.disabled    = true;
+    btnNext.disabled     = true;
+    btnNext.textContent  = 'Next →';
+    btnReset.disabled    = false;
+    return;
+  }
+
+  /* ── DONE ── */
+  if (phase === 'done') {
+    elPhase.className   = 'timer-phase-badge done'; elPhase.textContent = 'done';
+    elNum.textContent   = 'Session Complete';       elName.textContent  = '✦ All items executed';
+    elDigital.textContent = '00:00';
+    elPracBar.style.width = '0%';
+    btnStart.classList.add('t-primary');
+    btnStart.textContent = 'Done ✓'; btnStart.disabled = true;
+    btnNext.textContent  = 'Next →'; btnNext.disabled = true;
+    btnReset.disabled = false;
+    return;
+  }
+
+  /* ── MICROSTEP phase ── */
+  if (phase === 'microstep') {
+    const item  = items[itemIdx];
+    const steps = getScaledSteps(sessId, item.idx);
+    const msIdx = ts.msStepIdx;
+    const step  = steps[msIdx];
+
+    elPhase.className   = 'timer-phase-badge prac'; elPhase.textContent = 'Microstep';
+    elNum.textContent   = 'Item ' + (itemIdx + 1) + ' · Step ' + (msIdx + 1) + ' of ' + steps.length;
+    elName.textContent  = item ? item.name : '';
+
+    /* Overall item time on main clock (sum of remaining step durations) */
+    const totalSecs = items[itemIdx] ? items[itemIdx].commit * 60 : 0;
+    const elapsed   = (ts.msElapsed || 0) + (step && step[1] !== '—' ? (parseStepSecs(step[1]) - Math.max(0, ts.secsLeft)) : 0);
+    const remaining = Math.max(0, totalSecs - elapsed);
+    const rMins = Math.floor(remaining / 60), rSecs = remaining % 60;
+    elDigital.textContent = String(rMins).padStart(2,'0') + ':' + String(rSecs).padStart(2,'0');
+    elPracBar.style.width = (totalSecs > 0 ? Math.max(0, remaining / totalSecs) * 100 : 100) + '%';
+
+    /* Render microstep execution panel */
+    renderMsPanel(sessId, steps, msIdx, ts);
+
+    if (ts.paused) {
+      btnStart.classList.add('t-primary');
+      btnStart.textContent = '▶ Resume';
+    } else {
+      btnStart.classList.add('t-pause');
+      btnStart.textContent = '⏸ Pause';
+    }
+    btnStart.disabled = false;
+    btnNext.disabled  = false;
+    btnNext.textContent = (itemIdx + 1 < items.length) ? 'Next Item →' : 'Finish ✓';
+    btnReset.disabled = false;
+    return;
+  }
+
+  /* ── PRACTICE phase (no microsteps available) ── */
+  elNum.textContent  = 'Executing Item ' + (itemIdx + 1) + ' of ' + items.length;
+  elName.textContent = items[itemIdx] ? items[itemIdx].name : ('Item ' + (itemIdx + 1));
+
+  const totalSecs2 = items[itemIdx] ? items[itemIdx].commit * 60 : 0;
+  const frac       = totalSecs2 > 0 ? secsLeft / totalSecs2 : 0;
+  const mins       = Math.floor(secsLeft / 60);
+  const secs2      = secsLeft % 60;
+  elPhase.className   = 'timer-phase-badge prac'; elPhase.textContent = 'Execution';
+  elDigital.textContent = String(mins).padStart(2,'0') + ':' + String(secs2).padStart(2,'0');
+  elPracBar.style.width = (frac * 100) + '%';
+
+  if (ts.paused) {
+    btnStart.classList.add('t-primary');
+    btnStart.textContent = '▶ Resume';
+  } else {
+    btnStart.classList.add('t-pause');
+    btnStart.textContent = '⏸ Pause';
+  }
+  btnStart.disabled = false;
+  btnNext.disabled  = false;
+  btnNext.textContent = (itemIdx + 1 < items.length) ? 'Next Item →' : 'Finish ✓';
+  btnReset.disabled = false;
+}
+
+function timerTick(sessId) {
+  const ts = TIMER_STATE[sessId];
+  if (!ts || ts.paused) return;
+
+  if (ts.phase === 'microstep') {
+    /* only tick if current step has a real duration */
+    const items = timerItems(sessId);
+    const item  = items[ts.itemIdx];
+    if (!item) return;
+    const steps = getScaledSteps(sessId, item.idx);
+    const step  = steps[ts.msStepIdx];
+    const hasDur = step && step[1] !== '—';
+    if (hasDur) {
+      ts.secsLeft--;
+      if (ts.secsLeft <= 0) {
+        /* auto-advance: mark done, go to next step */
+        if (ts.iid) { clearInterval(ts.iid); ts.iid = null; }
+        playGood();
+        msStepAdvance(sessId, 'done', true);
+        return;
+      }
+    }
+    timerRenderUI(sessId);
+    return;
+  }
+
+  if (ts.phase === 'practice') {
+    ts.secsLeft--;
+    if (ts.secsLeft < 0) {
+      const items = timerItems(sessId);
+      if (ts.iid) { clearInterval(ts.iid); ts.iid = null; }
+      playGood();
+      ts.itemIdx++;
+      if (ts.itemIdx >= items.length) {
+        ts.phase = 'done'; ts.paused = true;
+        timerRenderUI(sessId); return;
+      }
+      ts.phase       = 'prep';
+      ts.prepChecked = [false, false, false];
+      ts.paused      = true;
+      ts.secsLeft    = items[ts.itemIdx].commit * 60;
+      timerRenderUI(sessId);
+      return;
+    }
+    timerRenderUI(sessId);
+  }
+}
+
+function timerAction(sessId, action) {
+  let ts = TIMER_STATE[sessId];
+
+  if (action === 'start') {
+    const running = ts && ts.phase !== 'idle' && ts.phase !== 'done';
+    const items = timerItems(sessId);
+
+    if (!running) {
+      if (items.length === 0) return;
+      if (ts && ts.iid) clearInterval(ts.iid);
+      unlockAudio();
+      TIMER_STATE[sessId] = {
+        itemIdx: 0, secsLeft: items[0].commit * 60, paused: true, iid: null,
+        phase: 'prep', prepChecked: [false, false, false],
+        msStepIdx: 0, msStepStatus: [], msElapsed: 0
+      };
+      timerRenderUI(sessId);
+      return;
+    }
+
+    unlockAudio();
+    if (ts.paused) {
+      ts.paused = false;
+      if (ts.iid) { clearInterval(ts.iid); ts.iid = null; }
+      ts.iid = setInterval(() => timerTick(sessId), 1000);
+    } else {
+      clearInterval(ts.iid); ts.iid = null; ts.paused = true;
+    }
+    timerRenderUI(sessId);
+    return;
+  }
+
+  if (action === 'next') {
+    if (!ts || (ts.phase !== 'practice' && ts.phase !== 'microstep')) return;
+    unlockAudio();
+    const items = timerItems(sessId);
+    if (ts.iid) { clearInterval(ts.iid); ts.iid = null; }
+    ts.itemIdx++;
+    if (ts.itemIdx >= items.length) {
+      ts.phase = 'done'; ts.paused = true;
+      timerRenderUI(sessId); return;
+    }
+    ts.phase       = 'prep';
+    ts.prepChecked = [false, false, false];
+    ts.paused      = true;
+    ts.secsLeft    = items[ts.itemIdx].commit * 60;
+    ts.msStepIdx    = 0;
+    ts.msStepStatus = [];
+    ts.msElapsed    = 0;
+    timerRenderUI(sessId);
+    return;
+  }
+
+  if (action === 'reset') {
+    if (ts && ts.iid) clearInterval(ts.iid);
+    TIMER_STATE[sessId] = null;
+    timerRenderUI(sessId);
+    return;
+  }
+}
+
+function refreshAllTimers() {
+  SESSIONS.forEach(sess => timerRenderUI(sess.id));
+}
+
+/* ══════════════════════════ 3-2-1 PREP FUNCTIONS ═══════════════════════════ */
+function prepTap(sessId, idx) {
+  const ts = TIMER_STATE[sessId];
+  if (!ts || ts.phase !== 'prep') return;
+  /* Sequential lock: cannot tap idx unless all prior tasks are checked */
+  for (let i = 0; i < idx; i++) {
+    if (!ts.prepChecked[i]) return;
+  }
+  ts.prepChecked[idx] = !ts.prepChecked[idx];
+  /* If unchecking, clear all subsequent */
+  if (!ts.prepChecked[idx]) {
+    for (let i = idx + 1; i < 3; i++) ts.prepChecked[i] = false;
+  }
+  timerRenderUI(sessId);
+}
+
+function launchItem(sessId) {
+  const ts = TIMER_STATE[sessId];
+  if (!ts || ts.phase !== 'prep') return;
+  if (!ts.prepChecked.every(Boolean)) return;
+  const items = timerItems(sessId);
+  const item  = items[ts.itemIdx];
+  const steps = getScaledSteps(sessId, item.idx);
+
+  if (steps.length > 0) {
+    /* enter microstep mode */
+    ts.phase        = 'microstep';
+    ts.paused       = true;
+    ts.msStepIdx    = 0;
+    ts.msStepStatus = new Array(steps.length).fill('pending');
+    ts.msElapsed    = 0;
+    ts.secsLeft     = parseStepSecs(steps[0][1]);
+  } else {
+    /* no microsteps — plain practice */
+    ts.phase    = 'practice';
+    ts.paused   = false;
+    ts.secsLeft = item.commit * 60;
+    if (ts.iid) clearInterval(ts.iid);
+    ts.iid = setInterval(() => timerTick(sessId), 1000);
+    playGood();
+  }
+  timerRenderUI(sessId);
+}
+
+/* ── Helpers ── */
+function getMicrosteps(sessId, itemOrigIdx) {
+  const sessIdx = ['morning','afternoon','evening'].indexOf(sessId);
+  if (sessIdx < 0) return [];
+  return (MICROSTEPS[sessId] || [])[itemOrigIdx] || [];
+}
+
+function parseStepSecs(durStr) {
+  if (!durStr || durStr === '—') return 0;
+  const m = durStr.match(/(\d+)/);
+  return m ? parseInt(m[1], 10) * 60 : 0;
+}
+
+function msStepAdvance(sessId, status, autoTick) {
+  const ts    = TIMER_STATE[sessId];
+  if (!ts) return;
+  const items = timerItems(sessId);
+  const item  = items[ts.itemIdx];
+  if (!item) return;
+  const steps = getScaledSteps(sessId, item.idx);
+
+  /* accumulate elapsed from this step */
+  const step = steps[ts.msStepIdx];
+  if (step && step[1] !== '—') {
+    const stepTotal = parseStepSecs(step[1]);
+    ts.msElapsed += stepTotal - Math.max(0, ts.secsLeft);
+  }
+
+  ts.msStepStatus[ts.msStepIdx] = status;
+
+  /* next step */
+  const nextIdx = ts.msStepIdx + 1;
+  if (nextIdx >= steps.length) {
+    /* all steps done — advance to next habit */
+    if (ts.iid) { clearInterval(ts.iid); ts.iid = null; }
+    playGood();
+    ts.itemIdx++;
+    if (ts.itemIdx >= items.length) {
+      ts.phase = 'done'; ts.paused = true;
+    } else {
+      ts.phase       = 'prep';
+      ts.prepChecked = [false, false, false];
+      ts.paused      = true;
+      ts.secsLeft    = items[ts.itemIdx].commit * 60;
+      ts.msStepIdx    = 0;
+      ts.msStepStatus = [];
+      ts.msElapsed    = 0;
+    }
+    timerRenderUI(sessId);
+    return;
+  }
+
+  ts.msStepIdx = nextIdx;
+  ts.secsLeft  = parseStepSecs(steps[nextIdx][1]);
+  ts.paused    = true;
+  if (ts.iid) { clearInterval(ts.iid); ts.iid = null; }
+  timerRenderUI(sessId);
+}
+
+function msStepStart(sessId) {
+  const ts = TIMER_STATE[sessId];
+  if (!ts || ts.phase !== 'microstep') return;
+  const items = timerItems(sessId);
+  const item  = items[ts.itemIdx];
+  if (!item) return;
+  const steps = getScaledSteps(sessId, item.idx);
+  const step  = steps[ts.msStepIdx];
+  const hasDur = step && step[1] !== '—';
+
+  if (ts.paused) {
+    ts.paused = false;
+    if (hasDur) {
+      if (ts.iid) { clearInterval(ts.iid); ts.iid = null; }
+      ts.iid = setInterval(() => timerTick(sessId), 1000);
+    }
+    playGood();
+  } else {
+    ts.paused = true;
+    if (ts.iid) { clearInterval(ts.iid); ts.iid = null; }
+  }
+  timerRenderUI(sessId);
+}
+
+function renderMsPanel(sessId, steps, msIdx, ts) {
+  const el = document.getElementById('tms-' + sessId);
+  if (!el) return;
+
+  /* ── EDIT MODE ── */
+  if (ts.msEditMode) {
+    const draft = ts.msEditDraft || steps.map(s => [...s]);
+    const editRows = draft.map((s, i) => `
+      <div class="ms-edit-row" data-row="${i}">
+        <span class="ms-edit-idx">${String(i + 1).padStart(2, '0')}</span>
+        <input class="ms-edit-name" type="text" value="${esc(s[0])}" placeholder="Step name">
+        <input class="ms-edit-dur"  type="text" value="${esc(s[1])}" placeholder="5 min">
+        <button class="ms-edit-del" onclick="msExecDeleteStep('${sessId}',${i})" title="Remove step">×</button>
+      </div>`).join('');
+
+    el.innerHTML = `
+      <div class="ms-edit-header" style="margin-bottom:8px;">
+        <div class="ms-edit-header-lbl">Edit Session Steps</div>
+        <span class="ms-session-tag">Session Only</span>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:5.5px;color:var(--fog);letter-spacing:1.5px;margin-bottom:8px;text-transform:uppercase;">
+        Changes apply to this execution session only
+      </div>
+      <div id="ms-exec-edit-rows-${sessId}" class="ms-edit-rows">${editRows}</div>
+      <div class="ms-edit-footer">
+        <button class="ms-edit-add" onclick="msExecAddStep('${sessId}')">＋ Add Step</button>
+        <button class="ms-edit-save" onclick="msEditSave('${sessId}')">✓ Save &amp; Continue</button>
+        <button class="ms-edit-cancel" onclick="msEditCancel('${sessId}')">Cancel</button>
+      </div>
+    `;
+    return;
+  }
+
+  /* ── NORMAL MODE ── */
+  const step    = steps[msIdx];
+  const hasDur  = step && step[1] !== '—';
+  const stepSec = hasDur ? parseStepSecs(step[1]) : 0;
+  const sLeft   = ts.secsLeft;
+  const frac    = (stepSec > 0) ? Math.min(1, Math.max(0, sLeft / stepSec)) : 1;
+  const sMins   = Math.floor(sLeft / 60), sSecs = sLeft % 60;
+
+  const listHTML = steps.map((s, i) => {
+    const st = (ts.msStepStatus || [])[i] || 'pending';
+    let cls = '';
+    if (i === msIdx)     cls = ' ms-active';
+    else if (st === 'done') cls = ' ms-done';
+    else if (st === 'skip') cls = ' ms-skip';
+    return `<div class="ms-exec-row${cls}">
+      <div class="ms-exec-rdot"></div>
+      <div class="ms-exec-rname">${esc(s[0])}</div>
+      <div class="ms-exec-rdur">${esc(s[1])}</div>
+    </div>`;
+  }).join('');
+
+  const isRunning = !ts.paused;
+
+  el.innerHTML = `
+    <div class="ms-exec-top">
+      <div style="flex-shrink:0;">
+        <div class="ms-exec-clock${!hasDur ? ' idle-clock' : ''}">
+          <div class="ms-exec-time${!hasDur ? ' idle-time' : ''}">${hasDur ? (String(sMins).padStart(2,'0') + ':' + String(sSecs).padStart(2,'0')) : '∞'}</div>
+          <div class="ms-exec-lbl">${isRunning && hasDur ? 'running' : 'step'}</div>
+        </div>
+        <div class="ms-exec-bar-wrap">
+          <div class="ms-exec-bar" style="width:${frac*100}%"></div>
+        </div>
+      </div>
+      <div class="ms-exec-info">
+        <div class="ms-exec-step-num">Step ${msIdx + 1} of ${steps.length}</div>
+        <div class="ms-exec-step-name">${esc(step ? step[0] : '')}</div>
+        <div class="ms-exec-step-dur">${step ? step[1] : ''}</div>
+      </div>
+    </div>
+    <div class="ms-exec-list">${listHTML}</div>
+    <div class="ms-exec-actions">
+      ${isRunning
+        ? `<button class="ms-exec-btn ms-pause" onclick="msStepStart('${sessId}')">⏸ Pause</button>`
+        : `<button class="ms-exec-btn ms-start" onclick="msStepStart('${sessId}')">▶ Start Step</button>`
+      }
+      <button class="ms-exec-btn ms-done-btn" onclick="msStepAdvance('${sessId}','done',false)">✓ Done</button>
+      <button class="ms-exec-btn ms-skip-btn" onclick="msStepAdvance('${sessId}','skip',false)">Skip →</button>
+      ${ts.paused ? `<button class="ms-exec-edit-btn" onclick="msEditStart('${sessId}')" title="Edit steps for this session">✎</button>` : ''}
+    </div>
+  `;
+}
+
+
+/* ════════════════════════ MICROSTEPS TOGGLE ═════════════════════════════════*/
+function syncToggleBtn(panel) {
+  /* After a panel innerHTML rebuild, sync the sibling toggle button's text/class */
+  const row = panel.closest('.item-row');
+  if (!row) return;
+  const btn = row.querySelector('.microsteps-toggle');
+  if (!btn) return;
+  const open = panel.classList.contains('open');
+  btn.classList.toggle('open', open);
+  btn.textContent = open ? '−' : '+';
+  btn.title = open ? 'Hide microsteps' : 'Show microsteps';
+}
+
+function toggleMicrosteps(btn) {
+  const row   = btn.closest('.item-row');
+  const panel = row.querySelector('.microsteps-panel');
+  if (!panel) return;
+  const open = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.textContent = open ? '−' : '+';
+  btn.title = open ? 'Hide microsteps' : 'Show microsteps';
+}
+
+/* ════════════════════ PLANNED PANEL EDIT SYSTEM ════════════════════════════ */
+
+function buildPlannedPanelContent(sessId, itemIdx, steps, hasOverride) {
+  const displaySteps = getScaledSteps(sessId, itemIdx);
+  const readRows = displaySteps.map(([name, dur]) =>
+    `<div class="ms-row"><div class="ms-dot"></div><div class="ms-name">${esc(name)}</div><div class="ms-dur">${esc(dur)}</div></div>`
+  ).join('');
+  const overrideTag = hasOverride
+    ? `<span class="ms-session-tag">Session Edit</span>`
+    : '';
+  return `
+    <div class="ms-panel-top">
+      <div class="ms-panel-top-lbl">${steps.length} step${steps.length !== 1 ? 's' : ''}${overrideTag ? ' ' + overrideTag : ''}</div>
+      <button class="ms-panel-edit-btn" onclick="startPlannedEdit('${sessId}',${itemIdx},this)">✎ Edit Session Steps</button>
+    </div>
+    <div class="ms-panel-body" id="ms-panel-body-${sessId}-${itemIdx}">${readRows}</div>
+  `;
+}
+
+function startPlannedEdit(sessId, itemIdx, btn) {
+  const panel = document.getElementById('ms-panel-' + sessId + '-' + itemIdx);
+  const body  = document.getElementById('ms-panel-body-' + sessId + '-' + itemIdx);
+  if (!panel || !body) return;
+
+  const steps = getEffectiveSteps(sessId, itemIdx);
+  btn.classList.add('active');
+  btn.textContent = '✕ Cancel';
+  btn.onclick = null;
+  btn.setAttribute('onclick', `cancelPlannedEdit('${sessId}',${itemIdx},this)`);
+
+  const editRows = steps.map((s, idx) => makePlannedEditRow(sessId, itemIdx, s, idx)).join('');
+  body.innerHTML = `
+    <div style="padding:4px 0 2px;">
+      <div class="ms-edit-header-lbl" style="margin-bottom:6px;">Editing steps for this session only</div>
+      <div class="ms-edit-session-note" style="margin-bottom:8px;color:var(--fog);">Changes reset on page refresh · Use — for open-ended duration</div>
+      <div id="ms-edit-rows-${sessId}-${itemIdx}" class="ms-edit-rows">${editRows}</div>
+      <div class="ms-edit-footer">
+        <button class="ms-edit-add" onclick="addPlannedStep('${sessId}',${itemIdx})">＋ Add Step</button>
+        <button class="ms-edit-save" onclick="savePlannedEdit('${sessId}',${itemIdx})">✓ Save Session Steps</button>
+      </div>
+    </div>
+  `;
+}
+
+function makePlannedEditRow(sessId, itemIdx, step, rowIdx) {
+  return `<div class="ms-edit-row" data-row="${rowIdx}">
+    <span class="ms-edit-idx">${String(rowIdx + 1).padStart(2, '0')}</span>
+    <input class="ms-edit-name" type="text" value="${esc(step[0])}" placeholder="Step name">
+    <input class="ms-edit-dur"  type="text" value="${esc(step[1])}" placeholder="5 min">
+    <button class="ms-edit-del" onclick="deletePlannedStep('${sessId}',${itemIdx},${rowIdx})" title="Remove step">×</button>
+  </div>`;
+}
+
+function readPlannedDraft(sessId, itemIdx) {
+  const container = document.getElementById('ms-edit-rows-' + sessId + '-' + itemIdx);
+  if (!container) return [];
+  const steps = [];
+  container.querySelectorAll('.ms-edit-row').forEach(row => {
+    const name = row.querySelector('.ms-edit-name')?.value?.trim() || '';
+    const dur  = row.querySelector('.ms-edit-dur')?.value?.trim()  || '—';
+    if (name) steps.push([name, dur]);
+  });
+  return steps;
+}
+
+function addPlannedStep(sessId, itemIdx) {
+  const current = readPlannedDraft(sessId, itemIdx);
+  current.push(['New Step', '5 min']);
+  const container = document.getElementById('ms-edit-rows-' + sessId + '-' + itemIdx);
+  if (container) {
+    container.innerHTML = current.map((s, i) => makePlannedEditRow(sessId, itemIdx, s, i)).join('');
+    const lastInput = container.querySelectorAll('.ms-edit-name');
+    if (lastInput.length) lastInput[lastInput.length - 1].focus();
+  }
+}
+
+function deletePlannedStep(sessId, itemIdx, rowIdx) {
+  const current = readPlannedDraft(sessId, itemIdx);
+  current.splice(rowIdx, 1);
+  const container = document.getElementById('ms-edit-rows-' + sessId + '-' + itemIdx);
+  if (container) container.innerHTML = current.map((s, i) => makePlannedEditRow(sessId, itemIdx, s, i)).join('');
+}
+
+function savePlannedEdit(sessId, itemIdx) {
+  const steps = readPlannedDraft(sessId, itemIdx);
+  setSessionSteps(sessId, itemIdx, steps);
+  refreshPlannedPanel(sessId, itemIdx);
+  // Sync timer if running
+  syncTimerAfterStepEdit(sessId, itemIdx, steps);
+}
+
+function cancelPlannedEdit(sessId, itemIdx) {
+  refreshPlannedPanel(sessId, itemIdx);
+}
+
+function refreshPlannedPanel(sessId, itemIdx) {
+  const panel = document.getElementById('ms-panel-' + sessId + '-' + itemIdx);
+  if (!panel) return;
+  const wasOpen = panel.classList.contains('open');
+  const steps = getEffectiveSteps(sessId, itemIdx);
+  const hasOverride = Object.prototype.hasOwnProperty.call(SESSION_STEPS, sessId + ':' + itemIdx);
+  panel.innerHTML = buildPlannedPanelContent(sessId, itemIdx, steps, hasOverride);
+  if (wasOpen) panel.classList.add('open');
+  syncToggleBtn(panel);
+}
+
+/* Sync timer state when steps are edited externally */
+function syncTimerAfterStepEdit(sessId, itemOrigIdx, newSteps) {
+  const ts = TIMER_STATE[sessId];
+  if (!ts || ts.phase !== 'microstep') return;
+  const items = timerItems(sessId);
+  const item  = items[ts.itemIdx];
+  if (!item || item.idx !== itemOrigIdx) return;
+  // Resize status array
+  const currentIdx = ts.msStepIdx;
+  ts.msStepStatus = newSteps.map((_, i) => {
+    if (i < currentIdx) return 'done';
+    if (i === currentIdx) return (ts.msStepStatus[i] || 'pending');
+    return 'pending';
+  });
+  if (ts.msStepIdx >= newSteps.length) ts.msStepIdx = Math.max(0, newSteps.length - 1);
+  if (newSteps.length > 0) {
+    const scaledSteps = getScaledSteps(sessId, itemOrigIdx);
+    ts.secsLeft = parseStepSecs((scaledSteps[ts.msStepIdx] || newSteps[ts.msStepIdx])[1]);
+  }
+  timerRenderUI(sessId);
+}
+
+/* ════════════════════ EXECUTION PANEL EDIT SYSTEM ══════════════════════════ */
+
+function msEditStart(sessId) {
+  const ts = TIMER_STATE[sessId];
+  if (!ts || ts.phase !== 'microstep' || !ts.paused) return;
+  const items = timerItems(sessId);
+  const item  = items[ts.itemIdx];
+  if (!item) return;
+  ts.msEditMode     = true;
+  ts.msEditDraft    = getEffectiveSteps(sessId, item.idx).map(s => [...s]);
+  ts.msEditItemIdx  = item.idx;
+  renderMsPanel(sessId, getScaledSteps(sessId, item.idx), ts.msStepIdx, ts);
+}
+
+function msEditDraftUpdate(sessId) {
+  const ts = TIMER_STATE[sessId];
+  if (!ts || !ts.msEditMode) return;
+  const container = document.getElementById('ms-exec-edit-rows-' + sessId);
+  if (!container) return;
+  const steps = [];
+  container.querySelectorAll('.ms-edit-row').forEach(row => {
+    const name = row.querySelector('.ms-edit-name')?.value?.trim() || '';
+    const dur  = row.querySelector('.ms-edit-dur')?.value?.trim()  || '—';
+    if (name) steps.push([name, dur]);
+  });
+  ts.msEditDraft = steps;
+}
+
+function msExecAddStep(sessId) {
+  const ts = TIMER_STATE[sessId];
+  if (!ts || !ts.msEditMode) return;
+  msEditDraftUpdate(sessId);
+  ts.msEditDraft.push(['New Step', '5 min']);
+  renderMsPanel(sessId, getScaledSteps(sessId, ts.msEditItemIdx), ts.msStepIdx, ts);
+  // Focus last input
+  const container = document.getElementById('ms-exec-edit-rows-' + sessId);
+  if (container) {
+    const inputs = container.querySelectorAll('.ms-edit-name');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  }
+}
+
+function msExecDeleteStep(sessId, idx) {
+  const ts = TIMER_STATE[sessId];
+  if (!ts || !ts.msEditMode) return;
+  msEditDraftUpdate(sessId);
+  ts.msEditDraft.splice(idx, 1);
+  renderMsPanel(sessId, getScaledSteps(sessId, ts.msEditItemIdx), ts.msStepIdx, ts);
+}
+
+function msEditSave(sessId) {
+  const ts = TIMER_STATE[sessId];
+  if (!ts || !ts.msEditMode) return;
+  msEditDraftUpdate(sessId);
+  const newSteps   = ts.msEditDraft.filter(s => s[0].trim() !== '');
+  const itemOrigIdx = ts.msEditItemIdx;
+  setSessionSteps(sessId, itemOrigIdx, newSteps);
+  // Sync status array
+  const curIdx = ts.msStepIdx;
+  ts.msStepStatus = newSteps.map((_, i) => {
+    if (i < curIdx) return 'done';
+    if (i === curIdx) return (ts.msStepStatus[i] || 'pending');
+    return 'pending';
+  });
+  if (ts.msStepIdx >= newSteps.length) ts.msStepIdx = Math.max(0, newSteps.length - 1);
+  if (newSteps.length > 0) {
+    const scaledSteps = getScaledSteps(sessId, itemOrigIdx);
+    ts.secsLeft = parseStepSecs((scaledSteps[ts.msStepIdx] || newSteps[ts.msStepIdx])[1]);
+  }
+  ts.msEditMode    = false;
+  ts.msEditDraft   = null;
+  ts.msEditItemIdx = undefined;
+  // Also refresh planned panel if visible
+  refreshPlannedPanel(sessId, itemOrigIdx);
+  renderMsPanel(sessId, getScaledSteps(sessId, itemOrigIdx), ts.msStepIdx, ts);
+  timerRenderUI(sessId);
+}
+
+function msEditCancel(sessId) {
+  const ts = TIMER_STATE[sessId];
+  if (!ts) return;
+  const itemOrigIdx = ts.msEditItemIdx;
+  ts.msEditMode    = false;
+  ts.msEditDraft   = null;
+  ts.msEditItemIdx = undefined;
+  if (itemOrigIdx !== undefined) {
+    renderMsPanel(sessId, getScaledSteps(sessId, itemOrigIdx), ts.msStepIdx, ts);
+  }
+}
+
+
+function sessionProgress(sess, startTime) {
+  if (!startTime) return 0;
+  const parts = startTime.split(':');
+  if (parts.length < 2) return 0;
+  const sh = parseInt(parts[0], 10), sm = parseInt(parts[1], 10);
+  if (isNaN(sh) || isNaN(sm)) return 0;
+  const now = new Date();
+  const nowMins = now.getHours() * 60 + now.getMinutes();
+  const startMins = sh * 60 + sm;
+  const endMins = sess.endH * 60 + sess.endM;
+  const total = endMins - startMins;
+  if (total <= 0) return 100;
+  const elapsed = nowMins - startMins;
+  return Math.min(100, Math.max(0, Math.round((elapsed / total) * 100)));
+}
+
+function build() {
+  const wrap = document.getElementById('sessionsWrap');
+  wrap.innerHTML = '';
+
+  SESSIONS.forEach(sess => {
+    const sS = S.sessions[sess.id];
+    const c  = calcSession(sess, sS.startTime);
+
+    const col = document.createElement('div');
+    col.className = 'session-col' + (sS.startTime ? ' has-time' : '');
+    col.id = `col-${sess.id}`;
+
+    const calcLabels = ['Total','Per Item','Prep','Practice'];
+    const calcVals   = c ? [c.total, c.perItem, c.prep, c.practice] : [null,null,null,null];
+    const calcHTML = calcLabels.map((lbl, i) => {
+      const v = calcVals[i];
+      return `<div class="calc-cell">
+        <div class="calc-label">${lbl}</div>
+        <div class="calc-val${v===null?' empty':''}">${v!==null?`${v}<span class="calc-unit">m</span>`:'—'}</div>
+      </div>`;
+    }).join('');
+
+    /* Planned table:
+       - No start time → show defaultPrep and defaultActuals[i]
+       - Start time set → Prep = c.prep for each item, Practice = c.itemPractices[i]
+         (scaled proportionally by each item's multiplier vs defaultPrep) */
+    const dp = defaultPrep(sess);
+    const plannedHTML = sess.items.map((item, i) => {
+      const prepVal = c ? c.prep : dp;
+      const pracVal = c ? c.itemPractices[i] : sess.defaultActuals[i];
+      const steps   = getEffectiveSteps(sess.id, i);
+      const baseSteps = (MICROSTEPS[sess.id] || [])[i] || [];
+      const hasOverride = Object.prototype.hasOwnProperty.call(SESSION_STEPS, sess.id + ':' + i);
+      const hasSteps = steps.length > 0 || baseSteps.length > 0;
+      const panelContent = buildPlannedPanelContent(sess.id, i, steps, hasOverride);
+      return `<div class="item-row${i===5?' last-planned':''}" data-sess="${sess.id}" data-item="${i}">
+        <span class="item-num">0${i+1}</span>
+        <span class="item-name-label">${esc(item)}<span class="item-name-mr">${esc(sess.itemsMr[i])}</span></span>
+        <div class="item-dur" data-dur-prep="${i}">${prepVal}m</div>
+        <div class="item-dur" data-dur-prac="${i}" style="justify-content:center;gap:4px;"><span class="dur-prac-val">${pracVal}m</span>${hasSteps?`<button class="microsteps-toggle" title="Show microsteps" onclick="toggleMicrosteps(this)" aria-label="Toggle microsteps">+</button>`:''}</div>
+        ${hasSteps?`<div class="microsteps-panel" id="ms-panel-${sess.id}-${i}">${panelContent}</div>`:''}
+      </div>`;
+    }).join('');
+
+      const actualHTML = sess.items.map((item, i) => {
+      const locked     = (sS.commitLocked||[])[i];
+      const stored     = (sS.actualCommit||[])[i];
+      const isAutoFilled = !locked || stored === '' || stored === undefined || stored === null;
+      const displayVal = resolvedCommit(sess, sS, c, i);
+      const savedName  = (sS.actualItemName||[])[i];
+      const isCustom   = savedName && savedName !== sess.items[i];
+      const nameVal    = savedName || sess.items[i];
+      const voiceMicSVG = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>`;
+      return `<div class="actual-item-row${i===5?' last-actual':''}">
+        <span class="item-num">0${i+1}</span>
+        <div class="actual-name-wrap">
+          <input class="actual-name-input${isCustom?' customised':''}" type="text"
+            value="${esc(nameVal)}" placeholder="${esc(sess.items[i])}"
+            data-sess="${sess.id}" data-idx="${i}" data-default="${esc(sess.items[i])}">
+          <button class="voice-btn" title="Voice input" aria-label="Voice input"
+            onclick="startVoiceForInput(this.previousElementSibling, this)">${voiceMicSVG}</button>
+        </div>
+        <input class="commit-input${isAutoFilled?' auto-filled':''}" type="number" min="1" max="999"
+          placeholder="min" value="${esc(String(displayVal))}" autocomplete="off"
+          data-sess="${sess.id}" data-idx="${i}" data-auto="${isAutoFilled?'1':'0'}">
+      </div>`;
+    }).join('');
+
+    col.innerHTML = `
+      <div class="sess-head" data-numeral="${sess.label}">
+        <div class="sess-head-top">
+          <div class="sess-head-left">
+            <div class="sess-numeral">Session ${sess.label}</div>
+            <div class="sess-name">${sess.name}</div>
+            <div class="sess-window">${sess.window}</div>
+          </div>
+          <div class="sess-badge${sS.startTime?' active':''}">
+            <div class="badge-dot"></div>
+            <span>${sS.startTime?'Scheduled':'Not Scheduled'}</span>
+          </div>
+        </div>
+        <div class="sess-start-row">
+          <span class="sess-start-label">Start</span>
+          <input class="sess-time-input" type="time" value="${esc(sS.startTime)}">
+        </div>
+      </div>
+      <div class="sess-progress">
+        <div class="sess-progress-fill" style="width:${c ? sessionProgress(sess, sS.startTime) : 0}%"></div>
+      </div>
+      <div class="calc-strip">${calcHTML}</div>
+      <div class="section-banner">Planned</div>
+      <div class="table-head">
+        <span class="th">#</span>
+        <span class="th">Practice Item</span>
+        <span class="th c">Prep</span>
+        <span class="th c">Practice</span>
+      </div>
+      ${plannedHTML}
+      <div class="actual-banner">
+        <span>Actual ▼</span>
+      </div>
+      <div class="actual-table-head">
+        <span class="th">#</span>
+        <span class="th">Practice Item</span>
+        <span class="th c">Commit (min)</span>
+      </div>
+      ${actualHTML}
+      <div class="sess-timer" id="timer-${sess.id}">
+        <div class="timer-header">
+          <div class="timer-label">Execution Timer</div>
+          <div class="timer-phase-badge" id="tph-${sess.id}">idle</div>
+        </div>
+        <div class="timer-item-num" id="tnum-${sess.id}">—</div>
+        <div class="timer-item-name" id="tname-${sess.id}">Setup session to begin</div>
+        <div class="timer-practice-view" id="tpracview-${sess.id}">
+          <div style="flex-shrink:0">
+            <div class="timer-digital-wrap">
+              <div class="timer-digital-time" id="tdigital-${sess.id}">00:00</div>
+              <div class="timer-digital-label">remaining</div>
+            </div>
+            <div class="timer-prac-bar-wrap">
+              <div class="timer-prac-bar" id="tpracbar-${sess.id}" style="width:100%"></div>
+            </div>
+          </div>
+          <div class="timer-items-mini" id="tmini-prac-${sess.id}"></div>
+        </div>
+        <div class="ms-exec-view" id="tms-${sess.id}"></div>
+        <div class="timer-prep-view" id="tprep-${sess.id}">
+          <div class="prep-task-row" id="tprep-${sess.id}-0" onclick="prepTap('${sess.id}',0)">
+            <span class="prep-num">०१</span>
+            <div class="prep-dot"></div>
+            <span class="prep-text" id="tprep-${sess.id}-t0">—</span>
+          </div>
+          <div class="prep-task-row" id="tprep-${sess.id}-1" onclick="prepTap('${sess.id}',1)">
+            <span class="prep-num">०२</span>
+            <div class="prep-dot"></div>
+            <span class="prep-text" id="tprep-${sess.id}-t1">—</span>
+          </div>
+          <div class="prep-task-row" id="tprep-${sess.id}-2" onclick="prepTap('${sess.id}',2)">
+            <span class="prep-num">०३</span>
+            <div class="prep-dot"></div>
+            <span class="prep-text" id="tprep-${sess.id}-t2">—</span>
+          </div>
+          <button class="prep-launch-btn" id="tprep-${sess.id}-go" disabled onclick="launchItem('${sess.id}')">सुरू →</button>
+        </div>
+        <div class="timer-controls">
+          <button class="timer-btn t-primary" id="tbtn-start-${sess.id}" onclick="timerAction('${sess.id}','start')">Start</button>
+          <button class="timer-btn t-next"    id="tbtn-next-${sess.id}"  onclick="timerAction('${sess.id}','next')" disabled>Next →</button>
+          <button class="timer-btn t-reset"   id="tbtn-reset-${sess.id}" onclick="timerAction('${sess.id}','reset')" disabled>↺</button>
+        </div>
+      </div>
+    `;
+
+    wrap.appendChild(col);
+
+    col.querySelector('.sess-time-input').addEventListener('change', e => {
+      S.sessions[sess.id].startTime = e.target.value;
+      refreshCalc(sess, col);
+      refreshCommitsOnCalcChange(sess, col);
+      persist();   // persist AFTER mutations so storage is always consistent
+      refreshFooter();
+      const hasTime = !!e.target.value;
+      col.querySelector('.sess-badge').classList.toggle('active', hasTime);
+      col.querySelector('.sess-badge span').textContent = hasTime ? 'Scheduled' : 'Not Scheduled';
+      col.classList.toggle('has-time', hasTime);
+      const newC = calcSession(sess, e.target.value);
+      col.querySelector('.sess-progress-fill').style.width = (newC ? sessionProgress(sess, e.target.value) + '%' : '0%');
+      timerRenderUI(sess.id);
+    });
+
+    col.querySelectorAll('.commit-input').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const idx = +e.target.dataset.idx;
+        const val = e.target.value.trim();
+        if (!S.sessions[sess.id].actualCommit) S.sessions[sess.id].actualCommit = ['','','','','',''];
+        if (!S.sessions[sess.id].commitLocked) S.sessions[sess.id].commitLocked = [false,false,false,false,false,false];
+        if (val !== '') {
+          // User is typing a value — lock it immediately
+          S.sessions[sess.id].actualCommit[idx] = val;
+          S.sessions[sess.id].commitLocked[idx]  = true;
+          e.target.dataset.auto = '0';
+          e.target.classList.remove('auto-filled');
+          persist();
+          refreshFooter();
+          timerRenderUI(sess.id);
+          /* Rescale microstep panel for this item */
+          const panel = document.getElementById('ms-panel-' + sess.id + '-' + idx);
+          if (panel && !panel.querySelector('.ms-edit-rows')) {
+            const steps = getEffectiveSteps(sess.id, idx);
+            if (steps.length) {
+              const wasOpen = panel.classList.contains('open');
+              const hasOverride = Object.prototype.hasOwnProperty.call(SESSION_STEPS, sess.id + ':' + idx);
+              panel.innerHTML = buildPlannedPanelContent(sess.id, idx, steps, hasOverride);
+              if (wasOpen) panel.classList.add('open');
+              syncToggleBtn(panel);
+            }
+          }
+        }
+        // Do NOT restore auto-fill on empty while still typing (handled on blur)
+      });
+
+      inp.addEventListener('blur', e => {
+        const idx = +e.target.dataset.idx;
+        const val = e.target.value.trim();
+        if (!S.sessions[sess.id].actualCommit) S.sessions[sess.id].actualCommit = ['','','','','',''];
+        if (!S.sessions[sess.id].commitLocked) S.sessions[sess.id].commitLocked = [false,false,false,false,false,false];
+        if (val === '') {
+          // Unlock on blur — show auto-computed value but store '' so it always recomputes
+          S.sessions[sess.id].actualCommit[idx] = '';
+          S.sessions[sess.id].commitLocked[idx]  = false;
+          e.target.dataset.auto = '1';
+          e.target.classList.add('auto-filled');
+          const c2 = calcSession(sess, S.sessions[sess.id].startTime);
+          e.target.value = String(autoCommitVal(sess, c2, idx));
+          persist();
+          refreshFooter();
+          timerRenderUI(sess.id);
+          /* Rescale microstep panel for this item */
+          const panel = document.getElementById('ms-panel-' + sess.id + '-' + idx);
+          if (panel && !panel.querySelector('.ms-edit-rows')) {
+            const steps = getEffectiveSteps(sess.id, idx);
+            if (steps.length) {
+              const wasOpen = panel.classList.contains('open');
+              const hasOverride = Object.prototype.hasOwnProperty.call(SESSION_STEPS, sess.id + ':' + idx);
+              panel.innerHTML = buildPlannedPanelContent(sess.id, idx, steps, hasOverride);
+              if (wasOpen) panel.classList.add('open');
+              syncToggleBtn(panel);
+            }
+          }
+        }
+      });
+    });
+
+    col.querySelectorAll('.actual-name-input').forEach(inp => {
+      inp.addEventListener('input', e => {
+        const idx = +e.target.dataset.idx;
+        const val = e.target.value;
+        const def = e.target.dataset.default;
+        if (!S.sessions[sess.id].actualItemName) S.sessions[sess.id].actualItemName = [...sess.items];
+        S.sessions[sess.id].actualItemName[idx] = val;
+        // Mark customised if different from default
+        e.target.classList.toggle('customised', val !== def && val !== '');
+        persist();
+        // Sync timer mini-list which shows item names
+        timerRenderUI(sess.id);
+      });
+      // Reset to default on clear
+      inp.addEventListener('change', e => {
+        if (e.target.value.trim() === '') {
+          const idx = +e.target.dataset.idx;
+          const def = e.target.dataset.default;
+          e.target.value = def;
+          S.sessions[sess.id].actualItemName[idx] = def;
+          e.target.classList.remove('customised');
+          persist();
+          timerRenderUI(sess.id);
+        }
+      });
+    });
+  });
+
+  refreshFooter();
+  refreshAllTimers();
+  /* Re-apply voice-unsupported class to newly rendered buttons */
+  if (!SpeechRecognition) {
+    document.querySelectorAll('.voice-btn').forEach(b => b.classList.add('voice-unsupported'));
+  }
+}
+
+function refreshCalc(sess, col) {
+  const c  = calcSession(sess, S.sessions[sess.id].startTime);
+  const vals = c ? [c.total, c.perItem, c.prep, c.practice] : [null,null,null,null];
+  col.querySelectorAll('.calc-val').forEach((el, i) => {
+    if (vals[i] !== null) {
+      el.className = 'calc-val';
+      el.innerHTML = `${vals[i]}<span class="calc-unit">m</span>`;
+    } else {
+      el.className = 'calc-val empty';
+      el.textContent = '—';
+    }
+  });
+  /* Planned row dur cells — use data attributes so we never touch the toggle button */
+  const dp = defaultPrep(sess);
+  sess.items.forEach((_, itemIdx) => {
+    const prepEl = col.querySelector(`[data-dur-prep="${itemIdx}"]`);
+    const pracEl = col.querySelector(`[data-dur-prac="${itemIdx}"] .dur-prac-val`);
+    if (prepEl) prepEl.textContent = (c ? c.prep : dp) + 'm';
+    if (pracEl) pracEl.textContent = (c ? c.itemPractices[itemIdx] : sess.defaultActuals[itemIdx]) + 'm';
+  });
+  /* Refresh microstep planned panels — preserve open state and skip panels in edit mode */
+  sess.items.forEach((_, itemIdx) => {
+    const panel = document.getElementById('ms-panel-' + sess.id + '-' + itemIdx);
+    if (!panel) return;
+    const steps = getEffectiveSteps(sess.id, itemIdx);
+    if (!steps.length) return;
+    /* Skip if the panel body is currently in edit mode (has ms-edit-rows) */
+    if (panel.querySelector('.ms-edit-rows')) return;
+    const wasOpen = panel.classList.contains('open');
+    const hasOverride = Object.prototype.hasOwnProperty.call(SESSION_STEPS, sess.id + ':' + itemIdx);
+    panel.innerHTML = buildPlannedPanelContent(sess.id, itemIdx, steps, hasOverride);
+    if (wasOpen) panel.classList.add('open');
+    syncToggleBtn(panel);
+  });
+}
+
+function refreshCommitsOnCalcChange(sess, col) {
+  /* When start time changes, all unlocked commit inputs recompute proportionally.
+     Locked (user-edited) inputs are left untouched. */
+  const sS = S.sessions[sess.id];
+  const c  = calcSession(sess, sS.startTime);
+  col.querySelectorAll('.commit-input').forEach((inp, i) => {
+    const isLocked = (sS.commitLocked||[])[i];
+    if (!isLocked) {
+      const newVal = autoCommitVal(sess, c, i);
+      inp.value = newVal;
+      inp.dataset.auto = '1';
+      inp.classList.add('auto-filled');
+      // Keep storage as '' so it always recomputes on next load
+      S.sessions[sess.id].actualCommit[i] = '';
+    }
+  });
+}
+
+function refreshFooter() {
+  let totalMin = 0, actualMin = 0, active = 0;
+  SESSIONS.forEach(sess => {
+    const sS = S.sessions[sess.id];
+    const c  = calcSession(sess, sS.startTime);
+    if (c) { totalMin += c.total; active++; }
+    for (let i = 0; i < 6; i++) {
+      actualMin += resolvedCommit(sess, sS, c, i);
+    }
+  });
+  document.getElementById('ftTotal').textContent    = active > 0 ? fmtHM(totalMin) : '—';
+  document.getElementById('ftActual').textContent   = actualMin > 0 ? fmtHM(actualMin) : '—';
+  document.getElementById('ftSessions').textContent = `${active} / 3`;
+}
+
+/* ═══════════════════════════════════ PDF ════════════════════════════════════ */
+/* ══════════════════════════════ PDF GENERATION ══════════════════════════════ */
+
+/* Lazy-load a script only once; returns a Promise that resolves when ready. */
+const _scriptCache = {};
+function _loadScript(src) {
+  if (_scriptCache[src]) return _scriptCache[src];
+  _scriptCache[src] = new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src;
+    s.onload  = resolve;
+    s.onerror = () => reject(new Error('Failed to load: ' + src));
+    document.head.appendChild(s);
+  });
+  return _scriptCache[src];
+}
+
+async function printPDF() {
+  const today = new Date();
+  const yyyy  = today.getFullYear();
+  const mm    = String(today.getMonth()+1).padStart(2,'0');
+  const dd    = String(today.getDate()).padStart(2,'0');
+  const practitioner = (document.getElementById('mPractitioner').value||'').trim();
+  const namePart = practitioner ? '_'+practitioner.replace(/\s+/g,'-') : '';
+  const filename = `Practitioner_${yyyy}-${mm}-${dd}${namePart}.pdf`;
+
+  const btn  = document.querySelector('.action-strip .btn-fill');
+  if (!btn) return;
+  const prev = btn.textContent;
+  btn.textContent = 'Loading…'; btn.disabled = true;
+
+  /* ── Load pdf libraries on first use ── */
+  try {
+    await Promise.all([
+      _loadScript('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'),
+      _loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')
+    ]);
+  } catch (_) {
+    _showVoiceToast('PDF libraries failed to load. Check your internet connection.', 'err', 4500);
+    btn.textContent = prev; btn.disabled = false;
+    return;
+  }
+
+  if (typeof html2canvas === 'undefined' || !window.jspdf) {
+    _showVoiceToast('PDF libraries unavailable. Please reload and try again.', 'err', 4500);
+    btn.textContent = prev; btn.disabled = false;
+    return;
+  }
+
+  btn.textContent = 'Generating…';
+
+  const RENDER_W = 1400;
+  const prevW  = document.body.style.width;
+  const prevMW = document.body.style.minWidth;
+  const prevOv = document.body.style.overflow;
+  const els = {};
+
+  document.body.classList.add('print-ready');
+  document.body.style.width    = RENDER_W+'px';
+  document.body.style.minWidth = RENDER_W+'px';
+  document.body.style.overflow = 'visible';
+  document.body.style.display  = 'flex';
+  document.body.style.flexDirection = 'column';
+
+  document.querySelectorAll('.session-col').forEach(c=>{c.style.opacity='1';c.style.transform='none';c.style.animation='none';});
+
+  const wrap = document.getElementById('sessionsWrap');
+  els.wrap = { display: wrap.style.display, gridTemplateColumns: wrap.style.gridTemplateColumns, borderRight: wrap.style.borderRight };
+  wrap.style.display = 'grid';
+  wrap.style.gridTemplateColumns = 'repeat(3, 1fr)';
+  const isLight = document.body.classList.contains('light-mode');
+  wrap.style.borderRight = isLight ? '1px solid #e0e0e0' : '1px solid #1a2035';
+
+  const actionStrip = document.querySelector('.action-strip');
+  els.actionStripDisplay = actionStrip ? actionStrip.style.display : null;
+  if (actionStrip) actionStrip.style.display = 'none';
+
+  const installBar = document.getElementById('installBar');
+  els.installBarDisplay = installBar ? installBar.style.display : null;
+  if (installBar) installBar.style.display = 'none';
+
+  const mastheadTop = document.querySelector('.masthead-top');
+  els.mastheadGrid = mastheadTop ? mastheadTop.style.gridTemplateColumns : null;
+  if (mastheadTop) mastheadTop.style.gridTemplateColumns = '280px 1fr 1fr auto';
+
+  const brandName = document.querySelector('.brand-name');
+  els.brandFontSize = brandName ? brandName.style.fontSize : null;
+  els.brandLetterSpacing = brandName ? brandName.style.letterSpacing : null;
+  if (brandName) { brandName.style.fontSize = '17px'; brandName.style.letterSpacing = '5px'; }
+
+  const mastheadBrand = document.querySelector('.masthead-brand');
+  els.brandPadding = mastheadBrand ? mastheadBrand.style.padding : null;
+  if (mastheadBrand) mastheadBrand.style.padding = '10px 18px 10px 22px';
+
+  await new Promise(r => setTimeout(r, 350));
+
+  try {
+    const fullH = document.body.scrollHeight;
+    const canvas = await html2canvas(document.body, {
+      scale: 2, useCORS: true, allowTaint: true,
+      backgroundColor: isLight ? '#ffffff' : '#07090f',
+      width: RENDER_W, height: fullH, windowWidth: RENDER_W, windowHeight: fullH,
+      x: 0, y: 0, scrollX: 0, scrollY: 0, logging: false, imageTimeout: 0, removeContainer: true
+    });
+    const {jsPDF} = window.jspdf;
+    const pdf = new jsPDF({orientation:'landscape', unit:'mm', format:'a4'});
+    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+    const A4W=297, A4H=210;
+    const ca = canvas.width/canvas.height, pa = A4W/A4H;
+    let iW, iH, oX=0, oY=0;
+    if (ca > pa) { iW=A4W; iH=A4W/ca; oY=(A4H-iH)/2; }
+    else          { iH=A4H; iW=A4H*ca; oX=(A4W-iW)/2; }
+    pdf.addImage(imgData, 'JPEG', oX, oY, iW, iH);
+    pdf.save(filename);
+    _showVoiceToast('PDF saved — ' + filename, 'ok', 3200);
+  } catch(err) {
+    console.error('[printPDF]', err);
+    _showVoiceToast('PDF generation failed. Please try again.', 'err', 4000);
+  } finally {
+    document.body.style.width    = prevW;
+    document.body.style.minWidth = prevMW;
+    document.body.style.overflow = prevOv;
+    document.body.style.display  = 'flex';
+    document.body.style.flexDirection = 'column';
+    document.body.classList.remove('print-ready');
+
+    wrap.style.display = els.wrap.display;
+    wrap.style.gridTemplateColumns = els.wrap.gridTemplateColumns;
+    wrap.style.borderRight = els.wrap.borderRight || '';
+
+    if (actionStrip) actionStrip.style.display = els.actionStripDisplay || '';
+    if (installBar)  installBar.style.display  = els.installBarDisplay  || '';
+
+    if (mastheadTop) mastheadTop.style.gridTemplateColumns = els.mastheadGrid || '';
+    if (brandName)   { brandName.style.fontSize = els.brandFontSize || ''; brandName.style.letterSpacing = els.brandLetterSpacing || ''; }
+    if (mastheadBrand) mastheadBrand.style.padding = els.brandPadding || '';
+
+    document.querySelectorAll('.session-col').forEach(c=>{c.style.opacity='';c.style.transform='';c.style.animation='';});
+    btn.textContent = prev; btn.disabled = false;
+  }
+}
+
+/* ═══════════════════════════════════ VOICE INPUT ════════════════════════════ */
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let _activeRecognition = null;
+let _activeBtn = null;
+let _voiceToastTimer = null;
+
+function _showVoiceToast(msg, type /* 'err' | 'info' | 'ok' */, durationMs) {
+  const el = document.getElementById('voiceToast');
+  if (!el) return;
+  clearTimeout(_voiceToastTimer);
+  el.textContent = msg;
+  el.className   = 'show toast-' + type;
+  _voiceToastTimer = setTimeout(() => { el.className = ''; }, durationMs || 2800);
+}
+
+(function markVoiceSupport() {
+  if (!SpeechRecognition) {
+    const s = document.createElement('style');
+    s.textContent = '.voice-btn { display: none !important; }';
+    document.head.appendChild(s);
+  }
+})();
+
+function _stopActiveRecognition() {
+  if (_activeRecognition) {
+    try { _activeRecognition.abort(); } catch(e) {}
+    _activeRecognition = null;
+  }
+  if (_activeBtn) {
+    _activeBtn.classList.remove('listening');
+    _activeBtn = null;
+  }
+}
+
+function _doVoice(targetInput, btn, onResult) {
+  if (!SpeechRecognition) {
+    _showVoiceToast('Voice input not supported in this browser', 'err', 3500);
+    return;
+  }
+
+  // Toggle off if already listening on this button
+  if (_activeBtn === btn) { _stopActiveRecognition(); return; }
+
+  _stopActiveRecognition();
+
+  /* Check mic permission state before starting — avoids silent failure on denied */
+  if (navigator.permissions && navigator.permissions.query) {
+    navigator.permissions.query({ name: 'microphone' }).then(status => {
+      if (status.state === 'denied') {
+        _showVoiceToast('Microphone blocked — allow it in browser settings', 'err', 4000);
+        return;
+      }
+      _startRecognition(targetInput, btn, onResult);
+    }).catch(() => {
+      // permissions API not supported or threw — proceed anyway
+      _startRecognition(targetInput, btn, onResult);
+    });
+  } else {
+    _startRecognition(targetInput, btn, onResult);
+  }
+}
+
+function _startRecognition(targetInput, btn, onResult) {
+  const recog = new SpeechRecognition();
+  recog.lang = 'en-IN';
+  recog.interimResults = false;
+  recog.maxAlternatives = 1;
+  recog.continuous = false;
+
+  _activeRecognition = recog;
+  _activeBtn = btn;
+  btn.classList.add('listening');
+
+  let gotResult = false;
+
+  recog.onresult = (e) => {
+    gotResult = true;
+    const transcript = (e.results[0][0].transcript || '').trim();
+    if (transcript) {
+      onResult(transcript);
+      _showVoiceToast('✓ ' + transcript, 'ok', 2000);
+    } else {
+      _showVoiceToast('No speech captured — try again', 'info', 2500);
+    }
+    _stopActiveRecognition();
+  };
+
+  recog.onerror = (e) => {
+    if (e.error === 'aborted') { _stopActiveRecognition(); return; }
+    const msgs = {
+      'not-allowed':         'Microphone access denied — check site permissions',
+      'service-not-allowed': 'Speech service blocked — check site permissions',
+      'no-speech':           'No speech detected — tap and speak clearly',
+      'network':             'No internet — speech recognition needs a connection',
+      'audio-capture':       'No microphone found — check device settings',
+      'language-not-supported': 'Language not supported — check browser settings',
+    };
+    _showVoiceToast(msgs[e.error] || 'Mic error: ' + e.error, 'err', 4000);
+    _stopActiveRecognition();
+  };
+
+  recog.onend = () => {
+    /* If recognition ended with no result and no error (e.g. silence timeout), show hint */
+    if (_activeBtn === btn && !gotResult) {
+      _showVoiceToast('No speech captured — tap and speak clearly', 'info', 2500);
+    }
+    if (_activeBtn === btn) _stopActiveRecognition();
+  };
+
+  try {
+    recog.start();
+    _showVoiceToast('Listening…', 'info', 8000);
+  } catch(e) {
+    _showVoiceToast('Could not start microphone: ' + (e.message || e), 'err', 3500);
+    _stopActiveRecognition();
+  }
+}
+
+/* For meta inputs (Practitioner / Focus): triggers input event to persist */
+function startVoice(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  _doVoice(input, btn, (text) => {
+    input.value = text;
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    input.focus();
+  });
+}
+
+/* For actual-name-inputs: triggers both input and change events */
+function startVoiceForInput(input, btn) {
+  if (!input) return;
+  _doVoice(input, btn, (text) => {
+    input.value = text;
+    input.dispatchEvent(new Event('input',  { bubbles: true }));
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    input.focus();
+  });
+}
+
+/* ═══════════════════════════════════ THEME ══════════════════════════════════ */
+const SUN_ICON  = `<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>`;
+const MOON_ICON = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>`;
+
+/* BUG FIX: initTheme was called before DOM was parsed (inside a script mid-page).
+   Moved to DOMContentLoaded — here it's safe because script is at end of body,
+   but wrapping ensures robustness and avoids null getElementById errors. */
+function initTheme() {
+  const saved = localStorage.getItem('practitioner_theme');
+  if (saved === 'light') {
+    document.body.classList.add('light-mode');
+    const icon = document.getElementById('themeIcon');
+    const label = document.getElementById('themeLabel');
+    if (icon)  icon.innerHTML = SUN_ICON;
+    if (label) label.textContent = 'Dark';
+  }
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-mode');
+  const icon  = document.getElementById('themeIcon');
+  const label = document.getElementById('themeLabel');
+  if (isLight) {
+    if (icon)  icon.innerHTML = SUN_ICON;
+    if (label) label.textContent = 'Dark';
+    localStorage.setItem('practitioner_theme', 'light');
+  } else {
+    if (icon)  icon.innerHTML = MOON_ICON;
+    if (label) label.textContent = 'Light';
+    localStorage.setItem('practitioner_theme', 'dark');
+  }
+}
+
+
+
+/* ═══════════════════════════════════ PRINT EVENTS ═══════════════════════════ */
+window.addEventListener('beforeprint', () => {
+  document.body.classList.add('print-ready');
+  document.querySelectorAll('.session-col').forEach(c=>{c.style.opacity='1';c.style.transform='none';c.style.animation='none';});
+});
+window.addEventListener('afterprint', () => {
+  document.body.classList.remove('print-ready');
+  document.querySelectorAll('.session-col').forEach(c=>{c.style.opacity='';c.style.transform='';c.style.animation='';});
+});
+
+/* ═══════════════════════════════════ INIT ═══════════════════════════════════ */
+initTheme();
+build();
+
+/* ══════════════════════════ USER GUIDE ══════════════════════════ */
+const GUIDE_STEPS = [
+  {
+    heading: 'Welcome to Practitioner',
+    subheading: 'प्रॅक्टिशनरमध्ये आपले स्वागत आहे',
+    desc: `<p>Practitioner is a daily discipline system built around <strong>three sessions</strong> and <strong>six practices each</strong> — Morning (03:00–09:00), Afternoon (09:00–15:00), and Evening (15:00–21:00).</p>
+<p>This guide walks you through every feature in nine steps. Use the arrows or dots below to navigate.</p>`,
+    callout: '<strong>मूळ तत्त्व:</strong> व्यवस्था शिस्त निर्माण करत नाही — ती शिस्तबद्ध निवड सहज करते. घर्षण कमी करणे हेच डिझाइन ध्येय आहे.'
+  },
+  {
+    heading: 'First-Time Setup',
+    subheading: 'पहिल्यांदा उघडताना',
+    desc: `<p>No account. No sync. Everything stays in your browser. Open the HTML file and it's ready.</p>`,
+    steps: [
+      'Enter your name in the <strong>Practitioner</strong> field at the top header.',
+      'Enter today\'s intention in the <strong>Focus / Goal</strong> field.',
+      'Both fields support <strong>voice input</strong> — tap the microphone icon and speak.',
+      'Today\'s date auto-fills on the right side of the header.',
+      'On Chrome, Edge, or Brave — accept the <em>Add to Home Screen</em> prompt for daily access.'
+    ],
+    callout: '<strong>टीप:</strong> Chrome, Edge, किंवा Brave वर होम स्क्रीनवर जोडण्याची सूचना येते — दैनंदिन वापरासाठी हे शिफारस केले जाते.'
+  },
+  {
+    heading: 'Session Setup',
+    subheading: 'सत्र सेट करणे',
+    desc: `<p>Find the session column for your current time of day. Enter the actual time you are starting — not the ideal time.</p>`,
+    steps: [
+      'Locate the correct session column: Morning, Afternoon, or Evening.',
+      'Enter the <strong>actual start time</strong> in the session header\'s time field.',
+      'The <strong>Calc Strip</strong> instantly updates — showing prep time, practice time, and estimated end.',
+      'All six planned items auto-fill with proportional durations based on available time.',
+      'The system never pretends you have more time than you do.'
+    ],
+    callout: '<strong>स्वयंचलित गणना:</strong> ०६:०० वाजता सुरू केल्यास, ०९:०० पर्यंत फक्त ३ तास उरतात. व्यवस्था त्या ३ तासांत सहा साधना बसवते — ६ तास असल्याचे भासवत नाही.'
+  },
+  {
+    heading: 'Locking Durations',
+    subheading: 'वचनबद्धता लॉक करणे',
+    desc: `<p>Some practices need a minimum time to be meaningful — Vipassana below 45 minutes isn't Vipassana. Lock those durations so time pressure never compresses them.</p>`,
+    steps: [
+      'Click into any item\'s <strong>commitment duration</strong> input (shown in gold).',
+      'Type your required minimum (e.g. 75 for Meditation, 30 for Running).',
+      'The value locks — it won\'t shrink when available session time decreases.',
+      'Remaining unlocked items absorb the time adjustments proportionally.',
+      'Leave items unlocked if you\'re comfortable with proportional scaling.'
+    ],
+    callout: '<strong>🔒 लॉक केलेले घटक:</strong> सत्राचा वेळ बदलला तरी त्यांचा कालावधी टिकवून ठेवतात. उर्वरित वेळ फक्त न-लॉक केलेल्या घटकांमध्ये वाटला जातो.'
+  },
+  {
+    heading: 'Microsteps — Before You Begin',
+    subheading: 'सूक्ष्म-पावले — साधनेपूर्वी',
+    desc: `<p>Knowing you need to meditate and actually sitting down are two different things. Microsteps close that gap with exact, sequenced sub-actions for each practice.</p>`,
+    steps: [
+      'In the planned items list, find the practice you\'re about to start.',
+      'Tap the <strong>▸ arrow</strong> on the right of that row.',
+      'The microsteps panel opens showing the full pre-practice checklist.',
+      'Read and follow each step — these are operational instructions, not reminders.',
+      'Tap <strong>Edit</strong> to adjust names or durations for today\'s session only (master template stays unchanged).',
+      'Tap <strong>▾</strong> to close the panel when ready.'
+    ],
+    callout: '<strong>उदाहरण — ध्यान:</strong> चटईवर बसा · पूर्वेकडे तोंड करा · मान, मनगट, घोटे सैल करा · गायत्री संकल्प · वजू'
+  },
+  {
+    heading: 'Running the Timer',
+    subheading: 'टायमर चालवणे',
+    desc: `<p>The timer is at the bottom of each session column. It moves through all six practices automatically — with a 3-2-1 preparation phase before each.</p>`,
+    steps: [
+      'Scroll to the <strong>Timer panel</strong> at the bottom of your session column.',
+      'Tap <strong>Start</strong>. The first 3-2-1 prep task highlights immediately.',
+      'Complete each prep task as shown — the countdown advances through all three.',
+      'After prep, the <strong>Practice phase</strong> begins: item name and countdown displayed.',
+      'Complete your practice. Tap <strong>Next →</strong> to advance to the next item.',
+      'Use <strong>Pause</strong> if interrupted. Resume with the same tap.',
+      'After all six items, the session enters <strong>Complete</strong> state — the progress bar turns fully gold.'
+    ],
+    callout: '<strong>लघु प्रगती दृश्य:</strong> सहा बिंदूंची पंक्ती — प्रलंबित, सक्रिय, आणि पूर्ण घटक एका दृष्टिक्षेपात दाखवते.'
+  },
+  {
+    heading: 'Recording Actuals',
+    subheading: 'वास्तविक नोंदवणे',
+    desc: `<p>The gap between planned and actual is data. Practitioner tracks both. After each practice — or at the end of a session — record what actually happened.</p>`,
+    steps: [
+      'Scroll down within the session column to the <strong>Actual</strong> section.',
+      'Each row is pre-filled with the planned item\'s name.',
+      'If you did something different, tap the name field and type what you actually did.',
+      'Enter the <strong>actual minutes spent</strong> in the duration column — even if different from planned.',
+      'The footer updates <strong>Total Actual</strong> in real time.',
+      'Consistent gaps in a practice = a friction point to address. Consistent match = a rooted habit.'
+    ],
+    callout: '<strong>नियोजित विरुद्ध वास्तविक अंतर:</strong> आत्म-ज्ञान बनवते जे खरी शिस्त शक्य करते. काळानुसार हे पाहण्यासाठी दैनिक PDF वापरा.'
+  },
+  {
+    heading: 'Saving the Day as PDF',
+    subheading: 'दिवस PDF म्हणून जतन करणे',
+    desc: `<p>At the end of every day, save a permanent record. These PDFs are not backups — they are your primary practice archive.</p>`,
+    steps: [
+      'Scroll to the <strong>Action Strip</strong> at the bottom of the page.',
+      'Tap the gold <strong>"Save Day as PDF"</strong> button.',
+      'The app captures the full page as a high-resolution image and generates a landscape PDF.',
+      'Filename is auto-generated with the day, date, and month.',
+      'Save PDFs into dated folders. Over weeks they become your practice ledger — the most honest record of how you spent your time.'
+    ],
+    callout: '<strong>फाइलचे नाव:</strong> वार, तारीख, आणि महिन्यासह स्वयंचलितपणे तयार होते. तारखेनुसार फोल्डरमध्ये जतन करा.'
+  },
+  {
+    heading: 'Theme, Reset & Privacy',
+    subheading: 'थीम, रीसेट आणि गोपनीयता',
+    desc: `<p>The final controls in the Action Strip, and a note on where your data lives.</p>`,
+    steps: [
+      '<strong>Light / Dark:</strong> Tap the theme toggle button — preference is saved and restored on every open.',
+      '<strong>Reset Times:</strong> Clears all session start times while keeping names, practices, and actuals intact. Use this to re-plan the day.',
+      '<strong>Clear All:</strong> Wipes all data and returns the app to blank state. A confirmation dialog appears first.',
+      '<strong>Privacy:</strong> All data is stored in your browser\'s localStorage only. Nothing leaves your device. No server, no account, no analytics.'
+    ],
+    callout: '<strong>तुमचा सराव रेकॉर्ड तुमचा आहे.</strong> Practitioner कोणत्याही सर्व्हरला काहीही पाठवत नाही. PDF निर्यात पूर्णपणे तुमच्या डिव्हाइसवर तयार होतो.'
+  }
+];
+
+let guideCurrent = 0;
+
+function openGuide() {
+  guideCurrent = 0;
+  renderGuideStep();
+  const ov = document.getElementById('guideOverlay');
+  ov.classList.add('show');
+  document.body.style.overflow = 'hidden';
+  ov.addEventListener('click', guideOverlayClick);
+}
+function closeGuide() {
+  const ov = document.getElementById('guideOverlay');
+  ov.classList.remove('show');
+  document.body.style.overflow = '';
+  ov.removeEventListener('click', guideOverlayClick);
+}
+function guideOverlayClick(e) { if (e.target === document.getElementById('guideOverlay')) closeGuide(); }
+function guideNav(dir) {
+  guideCurrent = Math.max(0, Math.min(GUIDE_STEPS.length - 1, guideCurrent + dir));
+  renderGuideStep();
+}
+function guideGoTo(i) { guideCurrent = i; renderGuideStep(); }
+
+function renderGuideStep() {
+  const s = GUIDE_STEPS[guideCurrent];
+  const total = GUIDE_STEPS.length;
+  const pct = ((guideCurrent + 1) / total) * 100;
+
+  // progress bar
+  document.getElementById('guideProgressFill').style.width = pct + '%';
+
+  // dots
+  const dotsEl = document.getElementById('guideDots');
+  dotsEl.innerHTML = GUIDE_STEPS.map((_, i) =>
+    `<div class="guide-dot${i === guideCurrent ? ' active' : ''}" onclick="guideGoTo(${i})" title="Step ${i+1}"></div>`
+  ).join('');
+
+  // nav buttons
+  document.getElementById('guidePrev').disabled = guideCurrent === 0;
+  const nextBtn = document.getElementById('guideNext');
+  if (guideCurrent === total - 1) {
+    nextBtn.textContent = 'Done ✓';
+    nextBtn.onclick = closeGuide;
+  } else {
+    nextBtn.textContent = 'Next →';
+    nextBtn.onclick = () => guideNav(1);
+  }
+
+  // body content
+  let html = `
+    <div class="guide-step-num">Step ${guideCurrent + 1} of ${total}</div>
+    <div class="guide-step-heading">${s.heading}</div>
+    <div class="guide-step-subheading">${s.subheading}</div>
+    <div class="guide-step-desc">${s.desc}</div>
+  `;
+  if (s.steps && s.steps.length) {
+    html += `<ul class="guide-checklist">` + s.steps.map((st, i) =>
+      `<li><span class="gc-num">${i+1}</span><span>${st}</span></li>`
+    ).join('') + `</ul>`;
+  }
+  if (s.callout) {
+    html += `<div class="guide-callout">${s.callout}</div>`;
+  }
+  const body = document.getElementById('guideBody');
+  body.innerHTML = html;
+  body.scrollTop = 0;
+}
+
+/* ══════════════════════════════════════════════════════════════════ */
+
+/* Register service worker — scope is derived dynamically so the app
+   works whether hosted at /Practitioner/, /, or any sub-path. */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    /* Resolve sw.js relative to the current page URL */
+    const swURL   = new URL('sw.js', document.baseURI).href;
+    const swScope = new URL('./',    document.baseURI).href;
+    navigator.serviceWorker.register(swURL, { scope: swScope })
+      .then(reg => {
+        console.log('[SW] Registered, scope:', reg.scope);
+        /* Check for updates on every page load */
+        reg.update().catch(() => {});
+        /* Notify the SW to activate immediately when a new version is waiting */
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        reg.addEventListener('updatefound', () => {
+          const installing = reg.installing;
+          if (installing) {
+            installing.addEventListener('statechange', () => {
+              if (installing.state === 'installed' && navigator.serviceWorker.controller) {
+                /* Do NOT auto-reload — it resets Chrome's install-prompt engagement counter.
+                   Show a soft toast instead so the user can reload when ready. */
+                console.log('[SW] New version ready — prompting user to reload.');
+                const t = document.createElement('div');
+                t.textContent = 'App updated — tap to refresh';
+                t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#c4a35a;color:#07090f;padding:8px 18px;border-radius:20px;font-size:12px;letter-spacing:1px;cursor:pointer;z-index:9999;font-family:monospace;white-space:nowrap;';
+                t.onclick = () => window.location.reload();
+                document.body.appendChild(t);
+                setTimeout(() => t.remove(), 9000);
+              }
+            });
+          }
+        });
+      })
+      .catch(err => console.warn('[SW] Registration failed:', err));
+  });
+}
+
+/* ── PWA Install Prompt ──────────────────────────────────────────── */
+let _installPrompt = null;
+
+function _showInstallUI() {
+  const bar  = document.getElementById('installBar');
+  const btn  = document.getElementById('btnInstall');
+  const btnB = document.getElementById('btnInstallBar');
+  if (bar)  bar.classList.add('show');
+  if (btn)  btn.style.display = '';
+  if (btnB) btnB.style.display = '';
+}
+function _hideInstallUI() {
+  const bar  = document.getElementById('installBar');
+  const btn  = document.getElementById('btnInstall');
+  const btnB = document.getElementById('btnInstallBar');
+  const hint = document.getElementById('iosInstallHint');
+  if (bar)  bar.classList.remove('show');
+  if (btn)  btn.style.display = 'none';
+  if (btnB) btnB.style.display = 'none';
+  if (hint) hint.style.display = 'none';
+}
+
+/* ── Detect environment once ─────────────────────────────────────── */
+const _ua         = navigator.userAgent;
+const _isIOS      = /iphone|ipad|ipod/i.test(_ua);
+const _isAndroid  = /android/i.test(_ua);
+const _isSafari   = /^((?!chrome|android|fxios|crios).)*safari/i.test(_ua);
+const _isStandalone = window.navigator.standalone === true
+                   || window.matchMedia('(display-mode: standalone)').matches;
+
+/* If already installed as PWA — hide everything immediately */
+if (_isStandalone) {
+  _hideInstallUI();
+} else if (_isIOS && _isSafari) {
+  /* iOS Safari — show Share hint immediately (no beforeinstallprompt on iOS) */
+  const hint = document.getElementById('iosInstallHint');
+  if (hint) hint.style.display = 'flex';
+}
+
+/* Chrome/Android: beforeinstallprompt fires async — capture and show UI */
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _installPrompt = e;
+  /* Clear any manual-instruction text that might have been set */
+  const bar  = document.getElementById('installBar');
+  const span = bar ? bar.querySelector('span') : null;
+  if (span) span.textContent = 'Add Practitioner to Home Screen';
+  _showInstallUI();
+});
+
+/* Hide install UI once the app is installed */
+window.addEventListener('appinstalled', () => {
+  _installPrompt = null;
+  _hideInstallUI();
+  console.log('[PWA] App installed successfully');
+});
+
+async function triggerInstall() {
+  if (_installPrompt) {
+    /* Native Chrome/Android prompt — triggers the OS "Add to Home Screen" dialog */
+    try {
+      await _installPrompt.prompt();
+      const { outcome } = await _installPrompt.userChoice;
+      console.log('[PWA] Install outcome:', outcome);
+      if (outcome === 'accepted') {
+        _installPrompt = null;
+        _hideInstallUI();
+      }
+    } catch (err) {
+      console.warn('[PWA] prompt() failed:', err);
+    }
+  } else if (_isAndroid) {
+    /* Android non-Chrome (Samsung, Firefox, etc.) — manual guide */
+    alert('To install: tap the browser menu (⋮) → "Add to Home Screen" or "Install app".');
+  } else if (_isIOS) {
+    /* iOS fallback — show hint if not already visible */
+    const hint = document.getElementById('iosInstallHint');
+    if (hint) hint.style.display = 'flex';
+  }
+}
+
+/* ── Android non-Chrome fallback (Samsung Browser, Firefox, etc.) ── */
+/* Only show manual-install bar if no native prompt arrives within 2s  */
+if (_isAndroid && !_isStandalone) {
+  setTimeout(() => {
+    if (!_installPrompt) {
+      const bar  = document.getElementById('installBar');
+      const span = bar ? bar.querySelector('span') : null;
+      if (span) span.textContent = 'Tap menu (⋮) → "Add to Home Screen" to install';
+      if (bar) bar.classList.add('show');
+    }
+  }, 2000);
+}
+</script>
+</body>
+</html>
