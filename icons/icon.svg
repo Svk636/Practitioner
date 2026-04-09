@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0c0f1a"/>
+      <stop offset="100%" stop-color="#07090f"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6b5228"/>
+      <stop offset="45%" stop-color="#c4a35a"/>
+      <stop offset="100%" stop-color="#debb77"/>
+    </linearGradient>
+    <linearGradient id="topbar" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#07090f" stop-opacity="0"/>
+      <stop offset="15%"  stop-color="#6b5228"/>
+      <stop offset="40%"  stop-color="#c4a35a"/>
+      <stop offset="50%"  stop-color="#debb77"/>
+      <stop offset="60%"  stop-color="#c4a35a"/>
+      <stop offset="85%"  stop-color="#6b5228"/>
+      <stop offset="100%" stop-color="#07090f" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+
+  <!-- Top gold bar -->
+  <rect x="0" y="0" width="512" height="6" rx="0" fill="url(#topbar)" opacity="0.9"/>
+
+  <!-- Outer border ring -->
+  <rect x="28" y="28" width="456" height="456" rx="72" fill="none" stroke="#c4a35a" stroke-width="1.5" opacity="0.22"/>
+
+  <!-- Inner border ring -->
+  <rect x="44" y="44" width="424" height="424" rx="60" fill="none" stroke="#c4a35a" stroke-width="0.75" opacity="0.10"/>
+
+  <!-- Letter P — Display serif stroke -->
+  <g filter="url(#glow)" opacity="0.95">
+    <!-- P stem -->
+    <rect x="156" y="138" width="28" height="236" rx="4" fill="url(#gold)"/>
+    <!-- P bowl outer -->
+    <path d="M 184 138 Q 320 138 320 215 Q 320 292 184 292 Z"
+          fill="none" stroke="url(#gold)" stroke-width="28" stroke-linejoin="round"/>
+    <!-- P bowl inner cutout (to make it look like an open bowl) -->
+    <path d="M 184 162 Q 294 162 294 215 Q 294 268 184 268 Z"
+          fill="#0c0f1a"/>
+  </g>
+
+  <!-- Small decorative dot row -->
+  <g opacity="0.45">
+    <circle cx="188" cy="346" r="5" fill="#c4a35a"/>
+    <circle cx="216" cy="346" r="5" fill="#c4a35a"/>
+    <circle cx="244" cy="346" r="5" fill="#c4a35a"/>
+    <circle cx="272" cy="346" r="5" fill="#c4a35a"/>
+    <circle cx="300" cy="346" r="5" fill="#c4a35a"/>
+    <circle cx="328" cy="346" r="5" fill="#c4a35a" opacity="0.3"/>
+  </g>
+
+  <!-- Bottom mono label -->
+  <text x="256" y="400" text-anchor="middle"
+        font-family="monospace" font-size="22" font-weight="400"
+        fill="#c4a35a" opacity="0.5" letter-spacing="12">PRACTICE</text>
+</svg>
